@@ -77,7 +77,7 @@ async function versionChecker(version?: string) {
 	let current_version = parseInt(version.replaceAll('.', ''));
 
 	let res = await fetch(
-		'https://gist.githubusercontent.com/Singulariity/b29def561801b993ff7312215cf2f3a9/raw/witch-love-vscode-version.json'
+		'https://raw.githubusercontent.com/Witch-Love/witchlove-vscode/master/package.json'
 	);
 
 	if (!res.ok) {
