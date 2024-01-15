@@ -1,0 +1,25 @@
+{
+	"example": [
+		{
+			"title": "Lens test",
+			"tooltip": "???",
+			"start": 10,
+			"end": 15
+		},
+		{
+			"title": "Lens test 2",
+			"start": 1,
+			"end": 5
+		},
+		{
+			"title": "Lens test 3",
+			"start": 15
+		}
+	],
+	"umi1_5": [
+		{
+			"title": "Epitaph (don't touch)",
+			"start": 943
+		}
+	]
+}

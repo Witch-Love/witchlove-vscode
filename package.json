@@ -1,0 +1,174 @@
+{
+	"name": "witch-love-vscode",
+	"displayName": "Witch Love",
+	"publisher": "Witch Love",
+	"icon": "img/icon.png",
+	"description": "An extension developed by Witch Love to assist the translating process.",
+	"repository": {
+		"url": "https://github.com/Witch-Love/witchlove-vscode"
+	},
+	"license": "MIT",
+	"version": "0.3.6",
+	"engines": {
+		"vscode": "^1.81.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onStartupFinished"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "witchLove.listen",
+				"title": "Witch Love: Listen current line's voice"
+			},
+			{
+				"command": "witchLove.translate",
+				"title": "Witch Love: Translate selected text(s) with DeepL"
+			}
+		],
+		"languages": [
+			{
+				"id": "story",
+				"aliases": [
+					"Story"
+				],
+				"extensions": [
+					".story"
+				],
+				"configuration": "./language/story-configuration.json"
+			},
+			{
+				"id": "umiscript",
+				"aliases": [
+					"Umineko Script"
+				],
+				"extensions": [
+					".umiscript"
+				],
+				"configuration": "./language/umiscript-configuration.json"
+			}
+		],
+		"grammars": [
+			{
+				"language": "story",
+				"scopeName": "source.story",
+				"path": "./language/story.tmLanguage.json"
+			},
+			{
+				"language": "umiscript",
+				"scopeName": "source.umiscript",
+				"path": "./language/umiscript.tmLanguage.json"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "witchLove.listen",
+				"key": "alt+q"
+			},
+			{
+				"command": "witchLove.translate",
+				"key": "alt+a"
+			}
+		],
+		"configuration": [
+			{
+				"title": "Witch Love",
+				"properties": {
+					"witchLove.hoverWidth": {
+						"type": "integer",
+						"markdownDescription": "Hovering over the first X character at the beginning of the line shows the character name speaking on that line `(default: 4)`",
+						"minimum": 0,
+						"maximum": 100,
+						"default": 4
+					},
+					"witchLove.lineColorOpacity": {
+						"type": "integer",
+						"markdownDescription": "Sets the background color intensity for character lines. 0: off, 255: full `(default: 0)`",
+						"minimum": 0,
+						"maximum": 255,
+						"default": 0
+					}
+				}
+			},
+			{
+				"title": "Line Listening",
+				"properties": {
+					"witchLove.lineListening.higurashiDirectories": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"default": [],
+						"markdownDescription": "Directories of __*07th-modded*__ Higurashi Hou folders. **Required for the line listening**   \nPress `Alt+Q` to listen current line.   \n\nExample: `E:/SteamLibrary/steamapps/common/Higurashi When They Cry`"
+					},
+					"witchLove.lineListening.uminekoDirectory": {
+						"type": "string",
+						"markdownDescription": "Directory of Umineko Project. **Required for the line listening**   \nPress `Alt+Q` to listen current line.   \n\nExample: `E:\\Files\\UminekoProject`",
+						"default": ""
+					},
+					"witchLove.lineListening.volume": {
+						"type": "integer",
+						"markdownDescription": "Line listening volume `(default: 5)`",
+						"minimum": 1,
+						"maximum": 100,
+						"default": 5
+					}
+				}
+			},
+			{
+				"title": "DeepL",
+				"properties": {
+					"witchLove.deepl.deeplKey": {
+						"type": "string",
+						"markdownDescription": "Your **DeepL API Key** for quick translation through Visual Studio Code. [How to get?](https://www.deepl.com/pro-api)   \n\nAfter selecting text(s), press `Alt+A` to translate. Translated text will be copied to clipboard.",
+						"default": ""
+					}
+				}
+			}
+		]
+	},
+	"scripts": {
+		"version-patch": "npm version patch --no-git-tag-version",
+		"version-minor": "npm version minor --no-git-tag-version",
+		"version-major": "npm version major --no-git-tag-version",
+		"minify": "modclean",
+		"package": "vsce package",
+		"vscode:prepublish": "npm run esbuild-base -- --minify",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"pretest": "npm run compile && npm run lint",
+		"lint": "eslint src --ext ts",
+		"esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
+		"esbuild": "npm run esbuild-base -- --sourcemap",
+		"esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
+		"test-compile": "tsc -p ./"
+	},
+	"devDependencies": {
+		"@types/mocha": "^10.0.1",
+		"@types/node": "16.x",
+		"@types/node-fetch": "^2.6.4",
+		"@types/random-seed": "^0.3.3",
+		"@types/vscode": "^1.81.0",
+		"@typescript-eslint/eslint-plugin": "^6.4.1",
+		"@typescript-eslint/parser": "^6.4.1",
+		"@vscode/test-electron": "^2.3.4",
+		"@vscode/vsce": "^2.15.0",
+		"esbuild": "^0.19.2",
+		"eslint": "^8.47.0",
+		"glob": "^10.3.3",
+		"mocha": "^10.2.0",
+		"typescript": "^5.1.6"
+	},
+	"dependencies": {
+		"@types/copy-paste": "^1.1.33",
+		"copy-paste": "^1.5.3",
+		"deepl-node": "^1.11.0",
+		"jimp": "^0.22.10",
+		"node-fetch": "^2.7.0",
+		"random-seed": "^0.3.0"
+	}
+}

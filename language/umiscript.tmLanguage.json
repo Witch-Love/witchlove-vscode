@@ -1,0 +1,60 @@
+{
+	"name": "Umineko Script",
+	"scopeName": "source.umiscript",
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"patterns": [
+		{
+			"include": "#stralias"
+		},
+		{
+			"include": "#numalias"
+		},
+		{
+			"include": "#comment"
+		}
+	],
+	"repository": {
+		"stralias": {
+			"match": "^(stralias) (.*?)(,) ?(\")(.*?)(\")",
+			"captures": {
+				"1": {
+					"name": "entity.name.function.umiscript"
+				},
+				"2": {
+					"name": "support.type.property-name.umiscript"
+				},
+				"3": {
+					"name": "punctuation.separator.comma.umiscript"
+				},
+				"4": {
+					"name": "punctuation.definition.string.begin.umiscript"
+				},
+				"6": {
+					"name": "punctuation.definition.string.end.umiscript"
+				}
+			}
+		},
+		"numalias": {
+			"match": "^(numalias) (.*?)(,) ?(\\d*)",
+			"captures": {
+				"1": {
+					"name": "constant.numeric.integer.umiscript"
+				},
+				"2": {
+					"name": "support.type.property-name.umiscript"
+				},
+				"3": {
+					"name": "punctuation.separator.comma.umiscript"
+				},
+				"4": {
+					"name": "constant.language.undefined.umiscript"
+				}
+			}
+		},
+		"comment": {
+			"begin": ";",
+			"end": "$\\n?",
+			"name": "comment.line.umiscript"
+		}
+	}
+}
