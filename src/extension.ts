@@ -326,7 +326,11 @@ function updateDecorations() {
 
 			let char_id = data[i + 1];
 			if (char_id instanceof Array) {
-				char_id = char_id[0];
+				if (char_id[0] == '999' && char_id[1]) {
+					char_id = "Unknown";
+				} else {
+					char_id = char_id[0];
+				}
 			}
 
 			let text_dec = decorationArrsText.get(char_id);

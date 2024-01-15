@@ -9,4 +9,5 @@ vsc-extension-quickstart.md
 **/*.map
 **/*.ts
 colors/**
+!colors/Unknown.png
 dataextract.php
