@@ -110,9 +110,9 @@ export function DisposableNotification(text: string): Notification {
 /**
  * Returns the absolute path of the file respect to the extension's folder.
  * @param path Path to the file inside the extension folder.
- * Example: `data/file.json`
+ * Example: `data/data/file.json`
  * @returns The absolute path of the file.
- * Example: `C:/.../data/file.json`
+ * Example: `C:/.../data/data/file.json`
  *
  */
 export function extensionFilePath(path: string) {
@@ -121,7 +121,7 @@ export function extensionFilePath(path: string) {
 
 /**
  *
- * @param path File path relative to the extension's folder. Example: `data/file.txt`
+ * @param path File path relative to the extension's folder. Example: `data/data/file.txt`
  * @returns `true` if the file exists, `false` otherwise.
  */
 export function isFileExists(path: string): boolean {

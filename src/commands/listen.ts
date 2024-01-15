@@ -15,10 +15,10 @@ async function Command() {
 	if (!activeEditor) return;
 
 	let filename = path.basename(activeEditor.document.fileName, '.txt');
-	let datapath = `data/${filename}.json`;
+	let datapath = `data/data/${filename}.json`;
 	if (!isFileExists(datapath)) {
 		let dirs = path.dirname(activeEditor.document.fileName).split(/\\|\//);
-		datapath = `data/${dirs[dirs.length - 1]}/${filename}.json`;
+		datapath = `data/data/${dirs[dirs.length - 1]}/${filename}.json`;
 	}
 
 	if (!voicelines) {

@@ -182,7 +182,7 @@ function initListeners(context: vscode.ExtensionContext) {
 				triggerUpdateDecorations();
 
 				let filename = path.basename(editor.document.fileName, '.txt');
-				let datapath = context.asAbsolutePath(`data/${filename}.json`);
+				let datapath = context.asAbsolutePath(`data/data/${filename}.json`);
 				updateVoicelines(datapath);
 			}
 		},
@@ -284,11 +284,11 @@ function updateDecorations() {
 	if (!activeEditor) return;
 
 	let file_name = path.basename(activeEditor.document.fileName, '.txt');
-	let file_data_path = `data/${file_name}.json`;
+	let file_data_path = `data/data/${file_name}.json`;
 
 	if (!isFileExists(file_data_path)) {
 		let dirs = path.dirname(activeEditor.document.fileName).split(/\\|\//);
-		file_data_path = `data/${dirs[dirs.length - 1]}/${file_name}.json`;
+		file_data_path = `data/data/${dirs[dirs.length - 1]}/${file_name}.json`;
 		if (!isFileExists(file_data_path)) return;
 	}
 
