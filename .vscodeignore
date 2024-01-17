@@ -12,4 +12,4 @@ vsc-extension-quickstart.md
 **/*.ts
 colors/**
 !colors/Unknown.png
-dataextract.php
+data/dataextract.php
