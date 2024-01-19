@@ -126,6 +126,15 @@
 						"type": "string",
 						"markdownDescription": "Your **DeepL API Key** for quick translation through Visual Studio Code. [How to get?](https://www.deepl.com/pro-api)   \n\nAfter selecting text(s), press `Alt+A` to translate. Translated text will be copied to clipboard.",
 						"default": ""
+					},
+					"witchLove.deepl.translateNotification": {
+						"type": "string",
+						"markdownDescription": "After translation, the translated text is copied to the clipboard. Would you like to receive an additional notification that contains the translated text?",
+						"default": "No",
+						"enum": [
+							"No",
+							"Yes"
+						]
 					}
 				}
 			}

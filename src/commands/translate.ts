@@ -78,6 +78,10 @@ async function Command() {
 
 		ncp.copy(result.text);
 		notification.close();
+
+		if (config.deepl_notification) {
+			window.showInformationMessage(result.text, "Close");
+		}
 	} catch (error) {
 		notification.close();
 

@@ -225,6 +225,7 @@ function loadSettings(context: vscode.ExtensionContext) {
 		},
 		listen_volume: conf.get<number>('lineListening.volume')!,
 		deepl_key: conf.get<string>('deepl.deeplKey')!,
+		deepl_notification: conf.get<string>('deepl.translateNotification')! == 'Yes'
 	};
 }
 

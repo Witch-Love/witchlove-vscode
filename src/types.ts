@@ -20,6 +20,7 @@ export type Config = {
 		extension: string;
 	};
 	deepl_key: string;
+	deepl_notification: boolean
 };
 
 export type Notification = {
