@@ -29,7 +29,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	// GLOBAL INITS
 	global.activeEditor = vscode.window.activeTextEditor;
 	global.voicelines = undefined;
-	global.glossaryDecor = undefined;
+	global.glossaryDecor = new Map();
 	global.glossary = {
 		higurashi: {},
 		umineko: {},
@@ -279,10 +279,13 @@ export function updateVoicelines(path: string) {
 }
 
 function updateDecorations() {
-	statusbarItem.hide();
-	translatebarItem.hide();
+	if (!activeEditor) {
+		statusbarItem.hide();
+		translatebarItem.hide();
+		return;
+	}
 
-	if (!activeEditor) return;
+	activeEditor.document.fileName
 
 	let file_name = path.basename(activeEditor.document.fileName, '.txt');
 	let file_data_path = `data/data/${file_name}.json`;
@@ -409,14 +412,15 @@ function updateDecorations() {
 			activeEditor.setDecorations(icon, decorationArrsIcon.get(char_id)!);
 	}
 
-	if (global.glossaryDecor) global.glossaryDecor.dispose();
+	let decor = global.glossaryDecor.get(activeEditor.document.fileName);
+	if (decor) decor.dispose();
 	let glos_decor = vscode.window.createTextEditorDecorationType({
 		backgroundColor: '#ffcc00',
 		overviewRulerColor: '#ffcc00',
 		color: '#1f1f1f',
 		fontWeight: 'bold',
 	});
-	global.glossaryDecor = glos_decor;
+	global.glossaryDecor.set(activeEditor.document.fileName, glos_decor);
 	activeEditor.setDecorations(glos_decor, glossary_decors);
 
 	statusbarItem.show();

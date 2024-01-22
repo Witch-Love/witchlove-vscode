@@ -12,7 +12,7 @@ declare global {
 			higurashi: { [key: string]: string };
 			umineko: { [key: string]: string };
 		};
-		var glossaryDecor: TextEditorDecorationType | undefined;
+		var glossaryDecor: Map<string, TextEditorDecorationType | undefined>;
 		var voicelines:
 			| {
 					[key: string]: string[];
