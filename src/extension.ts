@@ -106,7 +106,7 @@ async function initGlossary() {
 
 	//UMINEKO
 	let res_umineko = await fetch(
-		'https://raw.githubusercontent.com/Witch-Love/umineko-scripting-tr/master/CONTRIBUTING.md'
+		'https://raw.githubusercontent.com/Witch-Love/witch-love.github.io/main/mkdocs/docs/umineko/contributing/rules.md'
 	);
 
 	if (!res_umineko.ok) {
@@ -122,7 +122,7 @@ async function initGlossary() {
 
 	//HIGURASHI
 	let res_higurashi = await fetch(
-		'https://raw.githubusercontent.com/Witch-Love/higurashi-scripting-tr/master/CONTRIBUTING.md'
+		'https://raw.githubusercontent.com/Witch-Love/witch-love.github.io/main/mkdocs/docs/higurashi/contributing/rules.md'
 	);
 
 	if (!res_higurashi.ok) {
@@ -382,10 +382,10 @@ function updateDecorations() {
 					);
 
 					let hoverMessage = new vscode.MarkdownString(
-						`<span style="color:#ffcc00;">${tr}</span> — <a href="https://github.com/Witch-Love/${
+						`<span style="color:#ffcc00;">${tr}</span> — <a href="https://witch-love.github.io/wiki/${
 							file_type == 'umineko'
-								? 'umineko-scripting-tr/blob/master/CONTRIBUTING.md#kar%C5%9F%C4%B1l%C4%B1klar'
-								: 'higurashi-scripting-tr/blob/master/CONTRIBUTING.md#kar%C5%9F%C4%B1l%C4%B1klar'
+								? 'umineko/contributing/rules'
+								: 'higurashi/contributing/rules'
 						}">Tüm Liste</a>`
 					);
 					hoverMessage.supportHtml = true;
