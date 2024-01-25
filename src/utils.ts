@@ -1,6 +1,7 @@
 import * as random from 'random-seed';
 import * as fs from 'fs';
 import * as Jimp from 'jimp';
+import fetch from 'node-fetch';
 import { ColorActionName } from '@jimp/plugin-color';
 import { ProgressLocation, window } from 'vscode';
 
@@ -128,4 +129,20 @@ export function isFileExists(path: string): boolean {
 	let absolute_path = extensionFilePath(path);
 
 	return fs.existsSync(absolute_path);
+}
+
+export async function fetchFileText(url: string) {
+	let res = await fetch(url);
+
+	if (!res.ok) return;
+
+	return await res.text();
+}
+
+export async function fetchFileJson(url: string): Promise<{[key: string]: any;} | undefined> {
+	let res = await fetch(url);
+
+	if (!res.ok) return;
+
+	return await res.json();
 }

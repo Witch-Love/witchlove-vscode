@@ -1,11 +1,13 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import path from 'path';
-import fetch from 'node-fetch';
+import { compareVersions } from 'compare-versions';
 
 import {
 	DisposableNotification,
 	extensionFilePath,
+	fetchFileJson,
+	fetchFileText,
 	generateColorImage,
 	generateDecoration,
 	getSeededColor,
@@ -54,6 +56,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	// GLOSSARY INITS
 	await initGlossary();
+	await initLens();
 
 	// LENS INIT
 	vscode.languages.registerCodeLensProvider('*', new LensProvider());
@@ -68,72 +71,62 @@ export async function activate(context: vscode.ExtensionContext) {
 
 /**
  *
- * @param version current version of the extension
+ * @param current_version current version of the extension
  * @returns
  */
-async function versionChecker(version?: string) {
-	if (!version) return;
+async function versionChecker(current_version?: string) {
+	if (!current_version) return;
 
-	let current_version = parseInt(version.replaceAll('.', ''));
+	let res = await fetchFileJson('https://raw.githubusercontent.com/Witch-Love/witchlove-vscode/master/package.json');
 
-	let res = await fetch(
-		'https://raw.githubusercontent.com/Witch-Love/witchlove-vscode/master/package.json'
-	);
+	if (!res) return;
 
-	if (!res.ok) {
-		//TODO
-		return;
-	}
+	let latest_version = res.version as string;
 
-	let json = await res.json();
-
-	let latest_version = parseInt((json.version as string).replaceAll('.', ''));
-
-	if (latest_version > current_version) {
+	if (compareVersions(current_version, latest_version) == -1) {
 		vscode.window.showWarningMessage(
-			`There is a new version (v${json.version}) of the extension! Your version is v${version}. Please use the latest version!`
+			`There is a new version (v${latest_version}) of the extension! Your version is v${current_version}. Please use the latest version!`
 		);
-
-		/* if (action == 'Download Page') {
-			vscode.env.openExternal(vscode.Uri.parse(json.download));
-		} */
 	}
 }
 
 async function initGlossary() {
 	let exp = new RegExp(/\\* (.{1,40}) `->` (.*)$/, 'gim');
-	let text;
 
 	//UMINEKO
-	let res_umineko = await fetch(
-		'https://raw.githubusercontent.com/Witch-Love/witch-love.github.io/main/mkdocs/docs/umineko/contributing/rules.md'
-	);
+	let res_umineko = await fetchFileText('https://raw.githubusercontent.com/Witch-Love/witch-love.github.io/main/mkdocs/docs/umineko/contributing/rules.md');
 
-	if (!res_umineko.ok) {
-		//TODO
-		return;
-	}
+	if (!res_umineko) return;
 
-	text = await res_umineko.text();
 
-	for (let match of text.matchAll(exp)) {
+	for (let match of res_umineko.matchAll(exp)) {
 		glossary.umineko[match[1]] = match[2];
 	}
 
 	//HIGURASHI
-	let res_higurashi = await fetch(
+	let res_higurashi = await fetchFileText(
 		'https://raw.githubusercontent.com/Witch-Love/witch-love.github.io/main/mkdocs/docs/higurashi/contributing/rules.md'
 	);
 
-	if (!res_higurashi.ok) {
-		//TODO
-		return;
-	}
-
-	text = await res_higurashi.text();
-	for (let match of text.matchAll(exp)) {
+	if (!res_higurashi) return;
+	
+	for (let match of res_higurashi.matchAll(exp)) {
 		glossary.higurashi[match[1]] = match[2];
 	}
+}
+
+async function initLens() {
+	let res = await fetchFileText('https://gist.githubusercontent.com/Singulariity/0b41a4872b8039204b1450b5485c894a/raw/lens_data.json')
+
+	if (!res) return;
+
+	fs.writeFileSync(
+		extensionFilePath('lens_data.json'),
+		res,
+		{
+			encoding: 'utf-8',
+		}
+	);
 }
 
 async function initColorImages() {
@@ -449,13 +442,14 @@ async function updateWitchLoveWorkspace() {
 
 	let script_path = folders[0].uri.fsPath + '/script.php';
 	let ws_settings_path = folders[0].uri.fsPath + '/Witch Love.code-workspace';
+	let readme_path = folders[0].uri.fsPath + '/README.md';
 
 	let notification = DisposableNotification('Updating Witch Love Script...');
 
-	let res_script = await fetch(
+	let new_script = await fetchFileText(
 		'https://gist.githubusercontent.com/Singulariity/8a9ae39062225dc9e12e2431fdc3057c/raw/script.php'
 	);
-	if (!res_script.ok) {
+	if (!new_script) {
 		notification.close();
 		let selection = await vscode.window.showErrorMessage(
 			'Updating is failed. Please check your internet connection.',
@@ -468,17 +462,16 @@ async function updateWitchLoveWorkspace() {
 		return;
 	}
 
-	let newScript = await res_script.text();
-	fs.writeFileSync(script_path, newScript, { encoding: 'utf-8' });
+	fs.writeFileSync(script_path, new_script, { encoding: 'utf-8' });
 	notification.progress?.report({
 		message: 'Witch Love Script updated!\nUpdating Workspace Settings...',
 		increment: 50,
 	});
 
-	let res_settings = await fetch(
+	let new_settings = await fetchFileJson(
 		'https://gist.githubusercontent.com/Singulariity/55749720793d156306dafdc2e597a107/raw/settings.json'
 	);
-	if (!res_settings.ok) {
+	if (!new_settings) {
 		notification.close();
 		let selection = await vscode.window.showErrorMessage(
 			'Updating is failed. Please check your internet connection.',
@@ -492,11 +485,10 @@ async function updateWitchLoveWorkspace() {
 	}
 	let current_set = fs.readFileSync(ws_settings_path, 'utf-8');
 	let current_settings = JSON.parse(current_set);
-	let new_settings = await res_settings.json();
 
-	Object.keys(new_settings).forEach(function (key) {
+	for (let [key, _] of Object.entries(new_settings)) {
 		current_settings['settings'][key] = new_settings[key];
-	});
+	}
 
 	fs.writeFileSync(
 		ws_settings_path,
@@ -505,6 +497,22 @@ async function updateWitchLoveWorkspace() {
 			encoding: 'utf-8',
 		}
 	);
+
+	let new_readme = await fetchFileText('https://gist.githubusercontent.com/Singulariity/817d9819133be88d898be6bfc78e084f/raw/README.md');
+	if (!new_readme) {
+		notification.close();
+		let selection = await vscode.window.showErrorMessage(
+			'Updating is failed. Please check your internet connection.',
+			'Try Again',
+			'Close'
+		);
+		if (selection == 'Try Again') {
+			updateWitchLoveWorkspace();
+		}
+		return;
+	}
+
+	fs.writeFileSync(readme_path, new_readme, {encoding: 'utf-8'})
 
 	notification.close();
 
