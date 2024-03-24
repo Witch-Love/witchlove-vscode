@@ -95,7 +95,7 @@
 					"witchLove.truthColoring": {
 						"type": "string",
 						"markdownDescription": "Enables the background coloring of truth lines in Umineko. Replaces the character color.",
-						"default": "Yes",
+						"default": "No",
 						"enum": [
 							"No",
 							"Yes"

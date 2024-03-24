@@ -290,11 +290,6 @@ function updateDecorations() {
 	let file_data_path = `data/data/${file_name}.json`;
 	let truth_data_path = `data/truth/${file_name}.json`;
 
-	if (!isFileExists(truth_data_path)) {
-		truth_data_path = `data/truth/${file_name}.json`;
-		if (!isFileExists(truth_data_path)) return;
-	}
-
 	if (!isFileExists(file_data_path)) {
 		let dirs = path.dirname(activeEditor.document.fileName).split(/\\|\//);
 		file_data_path = `data/data/${dirs[dirs.length - 1]}/${file_name}.json`;
@@ -494,8 +489,10 @@ function updateDecorations() {
 			activeEditor.setDecorations(icon, decorationArrsIcon.get(char_id)!);
 	}
 
-	for (let [num, decor] of truthArrsText){
-		activeEditor.setDecorations(truthDecor.get(num)!, decor);
+	if(config.truth_coloring){
+		for (let [num, decor] of truthArrsText){
+			activeEditor.setDecorations(truthDecor.get(num)!, decor);
+		}
 	}
 
 	let glossaryDecor = global.glossaryDecor.get(activeEditor.document.fileName);
