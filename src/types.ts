@@ -13,6 +13,8 @@ export type Config = {
 	listen_volume: number;
 	hover_width: number;
 	line_color_opacity: number;
+	truth_coloring: boolean;
+	truth_color_opacity: number;
 	paths: {
 		umineko: string;
 		higurashi: string[];
@@ -20,7 +22,7 @@ export type Config = {
 		extension: string;
 	};
 	deepl_key: string;
-	deepl_notification: boolean
+	deepl_notification: boolean;
 };
 
 export type Notification = {
@@ -42,3 +44,5 @@ type LensItem = {
 	start: number;
 	end?: number;
 };
+
+export type Truth = [string, number];

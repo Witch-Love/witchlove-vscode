@@ -4,18 +4,21 @@ import path from 'path';
 import { compareVersions } from 'compare-versions';
 
 import {
+	colorMap,
 	DisposableNotification,
 	extensionFilePath,
 	fetchFileJson,
 	fetchFileText,
 	generateColorImage,
 	generateDecoration,
+	generateTruthDecorations,
 	getSeededColor,
 	isFileExists,
 } from './utils';
 import initListen from './commands/listen';
 import initTranslate from './commands/translate';
 import LensProvider from './providers/LensProvider';
+import {Truth} from "./types";
 
 async function extensionOnReady(context: vscode.ExtensionContext) {
 	if (activeEditor) {
@@ -31,6 +34,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	// GLOBAL INITS
 	global.activeEditor = vscode.window.activeTextEditor;
 	global.voicelines = undefined;
+	global.characters = new Map();
 	global.glossaryDecor = new Map();
 	global.glossary = {
 		higurashi: {},
@@ -39,6 +43,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	// INIT SETTINGS
 	loadSettings(context);
+
+	global.truthDecor = generateTruthDecorations();
 
 	// UPDATE WITCH LOVE WORKSPACE
 	await updateWitchLoveWorkspace();
@@ -66,7 +72,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	await initColorImages();
 	loadCharacterDecorations();
 
-	extensionOnReady(context);
+	await extensionOnReady(context);
 }
 
 /**
@@ -208,6 +214,8 @@ function loadSettings(context: vscode.ExtensionContext) {
 	global.config = {
 		hover_width: conf.get<number>('hoverWidth')!,
 		line_color_opacity: conf.get<number>('lineColorOpacity')!,
+		truth_coloring: conf.get<string>('truthColoring')! == 'Yes',
+		truth_color_opacity: conf.get<number>('truthColorOpacity')!,
 		paths: {
 			characters: context.asAbsolutePath('characters.json'),
 			higurashi: conf.get<string[]>(
@@ -223,8 +231,6 @@ function loadSettings(context: vscode.ExtensionContext) {
 }
 
 function initCharacters() {
-	global.characters = new Map();
-
 	let body = JSON.parse(fs.readFileSync(config.paths.characters, 'utf-8'));
 
 	for (var key in body) {
@@ -278,10 +284,16 @@ function updateDecorations() {
 		return;
 	}
 
-	activeEditor.document.fileName
+	activeEditor.document.fileName;
 
 	let file_name = path.basename(activeEditor.document.fileName, '.txt');
 	let file_data_path = `data/data/${file_name}.json`;
+	let truth_data_path = `data/truth/${file_name}.json`;
+
+	if (!isFileExists(truth_data_path)) {
+		truth_data_path = `data/truth/${file_name}.json`;
+		if (!isFileExists(truth_data_path)) return;
+	}
 
 	if (!isFileExists(file_data_path)) {
 		let dirs = path.dirname(activeEditor.document.fileName).split(/\\|\//);
@@ -289,13 +301,21 @@ function updateDecorations() {
 		if (!isFileExists(file_data_path)) return;
 	}
 
-	let data = JSON.parse(
+	let truthData = JSON.parse(
+		fs.readFileSync(extensionFilePath(truth_data_path), 'utf-8')
+	);
+
+	let characterData = JSON.parse(
 		fs.readFileSync(extensionFilePath(file_data_path), 'utf-8')
 	);
 
+	const truthArrsText = new Map<number, vscode.DecorationOptions[]>();
 	const decorationArrsText = new Map<string, vscode.DecorationOptions[]>();
 	const decorationArrsIcon = new Map<string, vscode.DecorationOptions[]>();
-	const glossary_decors: vscode.DecorationOptions[] = [];
+	const glossaryDecors: vscode.DecorationOptions[] = [];
+	for (let [key, _] of truthDecor) {
+		truthArrsText.set(key, []);
+	}
 	for (let [key, _] of characters) {
 		decorationArrsText.set(key, []);
 		decorationArrsIcon.set(key, []);
@@ -314,6 +334,75 @@ function updateDecorations() {
 		if (lines[i].includes('void main()') || lines[i].includes('log_reset'))
 			return;
 
+		//Truth coloring
+		if(config.truth_coloring && isFileExists(truth_data_path)){
+			let truth = truthData[i + 1];
+
+			if(truth == 0) return;
+
+			let truth_match = lines[i].match('(?<=p:)(.*)(?=})');
+
+			let truths: Truth[] = [['(?<=p:1:)(.*)(?=})', 1],
+				['(?<=p:2:)(.*)(?=})', 2],
+				['(?<=p:41:)(.*)(?=})', 3],
+				['(?<=p:42:)(.*)(?=})', 4]];
+
+			if (truth_match !== null && truth_match.index !== undefined) { //If not full-line
+				let truth_dec = truthArrsText.get(truth)!;
+
+				if (!truth_dec) continue;
+
+				let [truth_pattern, truth_type] = truths[truth];
+
+				let exp = new RegExp(truth_pattern, 'gi');
+				let matches = lines[i].matchAll(exp);
+
+				for (let item of matches) {
+					if (!item.index) continue;
+
+					let range = new vscode.Range(
+						new vscode.Position(i, item.index),
+						new vscode.Position(i, item.index + item[0].length),
+					);
+
+					let hoverMessage = new vscode.MarkdownString(
+						`<span style="${colorMap.get(truth_type)};">${truth_type} truth</span>"`
+					);
+					hoverMessage.supportHtml = true;
+
+					let decor = {
+						range,
+						hoverMessage,
+					};
+
+					truth_dec.push(decor);
+					}
+			} else { //If full-line
+				let truth_dec = truthArrsText.get(truth + 4)!;
+
+				if (!truth_dec) continue;
+
+				let [truth_pattern, truth_type] = truths[truth + 4];
+
+				let hoverMessage = new vscode.MarkdownString(
+					`<span style="${colorMap.get(truth_type)};">${truth_type} truth</span>"`
+				);
+				hoverMessage.supportHtml = true;
+
+				let range = new vscode.Range(
+					new vscode.Position(i, 0),
+					new vscode.Position(i, 1),
+				);
+
+				let decor = {
+					range,
+					hoverMessage
+				};
+
+				truth_dec.push(decor);
+			}
+		}
+
 		let match = lines[i].match('(.*)');
 		if (match !== null && match.index !== undefined) {
 			let default_range = new vscode.Range(
@@ -321,7 +410,7 @@ function updateDecorations() {
 				new vscode.Position(i, config.hover_width)
 			);
 
-			let char_id = data[i + 1];
+			let char_id = characterData[i + 1];
 			if (char_id instanceof Array) {
 				if (char_id[0] == '999' && char_id[1]) {
 					char_id = "Unknown";
@@ -388,7 +477,7 @@ function updateDecorations() {
 						hoverMessage,
 					};
 
-					glossary_decors.push(decor);
+					glossaryDecors.push(decor);
 				}
 			}
 		}
@@ -405,16 +494,20 @@ function updateDecorations() {
 			activeEditor.setDecorations(icon, decorationArrsIcon.get(char_id)!);
 	}
 
-	let decor = global.glossaryDecor.get(activeEditor.document.fileName);
-	if (decor) decor.dispose();
-	let glos_decor = vscode.window.createTextEditorDecorationType({
+	for (let [num, decor] of truthArrsText){
+		activeEditor.setDecorations(truthDecor.get(num)!, decor);
+	}
+
+	let glossaryDecor = global.glossaryDecor.get(activeEditor.document.fileName);
+	if (glossaryDecor) glossaryDecor.dispose();
+	let glosDecor = vscode.window.createTextEditorDecorationType({
 		backgroundColor: '#ffcc00',
 		overviewRulerColor: '#ffcc00',
 		color: '#1f1f1f',
 		fontWeight: 'bold',
 	});
-	global.glossaryDecor.set(activeEditor.document.fileName, glos_decor);
-	activeEditor.setDecorations(glos_decor, glossary_decors);
+	global.glossaryDecor.set(activeEditor.document.fileName, glosDecor);
+	activeEditor.setDecorations(glosDecor, glossaryDecors);
 
 	statusbarItem.show();
 	translatebarItem.show();
@@ -512,7 +605,7 @@ async function updateWitchLoveWorkspace() {
 		return;
 	}
 
-	fs.writeFileSync(readme_path, new_readme, {encoding: 'utf-8'})
+	fs.writeFileSync(readme_path, new_readme, {encoding: 'utf-8'});
 
 	notification.close();
 

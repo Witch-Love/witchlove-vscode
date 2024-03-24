@@ -2,10 +2,10 @@ import * as random from 'random-seed';
 import * as fs from 'fs';
 import * as Jimp from 'jimp';
 import fetch from 'node-fetch';
-import { ColorActionName } from '@jimp/plugin-color';
-import { ProgressLocation, window } from 'vscode';
+import {ColorActionName} from '@jimp/plugin-color';
+import {ProgressLocation, TextEditorDecorationType, window} from 'vscode';
 
-import { Notification } from './types';
+import {Notification} from './types';
 
 export function getSeededColor(key: string) {
 	return (
@@ -75,6 +75,39 @@ export function generateDecoration(key: string) {
 		text: decorationText,
 		icon: decorationIcon,
 	};
+}
+
+export const colorMap: Map<number, string> = new Map([
+	[1, "#ff1f20"], // Red
+	[2, "#23d8fa"], // Blue
+	[3, "#ffce33"], // Gold
+	[4, "#8856bf"], // Purple
+]);
+
+export function generateTruthDecorations() {
+	const truthDictionary: Map<number, TextEditorDecorationType> = new Map();
+
+	for (let [colorID, color] of colorMap.entries()){
+		truthDictionary.set(colorID, window.createTextEditorDecorationType({
+			isWholeLine: false,
+			backgroundColor:
+				color +
+				config.truth_color_opacity.toString(16).padStart(2, '0'),
+			overviewRulerColor: color,
+		}));
+	}
+
+	for (let [colorID, color] of colorMap.entries()){
+		truthDictionary.set(colorID + 4, window.createTextEditorDecorationType({
+			isWholeLine: true,
+			backgroundColor:
+				color +
+				config.truth_color_opacity.toString(16).padStart(2, '0'),
+			overviewRulerColor: color,
+		}));
+	}
+
+	return truthDictionary;
 }
 
 /**

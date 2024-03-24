@@ -8,7 +8,7 @@
 		"url": "https://github.com/Witch-Love/witchlove-vscode"
 	},
 	"license": "MIT",
-	"version": "0.3.11",
+	"version": "0.3.12",
 	"engines": {
 		"vscode": "^1.81.0"
 	},
@@ -87,7 +87,23 @@
 					},
 					"witchLove.lineColorOpacity": {
 						"type": "integer",
-						"markdownDescription": "Sets the background color intensity for character lines. 0: off, 255: full `(default: 0)`",
+						"markdownDescription": "Sets the background color intensity for character lines. 0: off, 255: full `(default: 0, suggested: 7)`",
+						"minimum": 0,
+						"maximum": 255,
+						"default": 0
+					},
+					"witchLove.truthColoring": {
+						"type": "string",
+						"markdownDescription": "Enables the background coloring of truth lines in Umineko. Replaces the character color.",
+						"default": "Yes",
+						"enum": [
+							"No",
+							"Yes"
+						]
+					},
+					"witchLove.truthColorOpacity": {
+						"type": "integer",
+						"markdownDescription": "Sets the background color intensity for truths in Umineko. 0: off, 255: full `(default: 0, suggested: 25)`",
 						"minimum": 0,
 						"maximum": 255,
 						"default": 0
