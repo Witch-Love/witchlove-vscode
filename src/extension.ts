@@ -375,7 +375,7 @@ function updateDecorations() {
 					);
 
 					let hoverMessage = new vscode.MarkdownString(
-						`<span style="color:#ffcc00;">${tr}</span> — <a href="https://witch-love.github.io/wiki/${
+						`<span style="color:#ffcc00;">${tr}</span> — <a href="https://witch-love.com/wiki/${
 							file_type == 'umineko'
 								? 'umineko/contributing/rules'
 								: 'higurashi/contributing/rules'
