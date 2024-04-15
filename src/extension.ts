@@ -247,6 +247,7 @@ function initStatusbarItem() {
 	statusbarItem.backgroundColor = new vscode.ThemeColor(
 		'statusBarItem.warningBackground'
 	);
+	statusbarItem.tooltip = "Alt + Q"
 }
 
 function initTranslateBarItem() {
@@ -260,6 +261,7 @@ function initTranslateBarItem() {
 		'statusBarItem.errorBackground'
 	);
 	translatebarItem.text = `$(notebook-edit) Translate`;
+	translatebarItem.tooltip = "Alt + A"
 }
 
 export function updateVoicelines(path: string) {
