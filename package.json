@@ -8,7 +8,7 @@
 		"url": "https://github.com/Witch-Love/witchlove-vscode"
 	},
 	"license": "MIT",
-	"version": "0.3.12",
+	"version": "0.3.13",
 	"engines": {
 		"vscode": "^1.81.0"
 	},
@@ -178,6 +178,7 @@
 		"copy-paste": "^1.5.3",
 		"deepl-node": "^1.11.0",
 		"jimp": "^0.22.10",
+		"modclean": "^3.0.0-beta.1",
 		"node-fetch": "^2.7.0",
 		"random-seed": "^0.3.0"
 	}
