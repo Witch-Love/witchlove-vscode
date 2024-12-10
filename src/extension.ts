@@ -446,9 +446,9 @@ async function updateWitchLoveWorkspace() {
 	let ws_settings_path = folders[0].uri.fsPath + '/Witch Love.code-workspace';
 	let readme_path = folders[0].uri.fsPath + '/README.md';
 
-	let notification = DisposableNotification('Updating Witch Love Script...');
+	let notification = DisposableNotification('Updating Witch Love Settings...');
 
-	let new_script = await fetchFileText(
+/* 	let new_script = await fetchFileText(
 		'https://gist.githubusercontent.com/Singulariity/8a9ae39062225dc9e12e2431fdc3057c/raw/script.php'
 	);
 	if (!new_script) {
@@ -468,7 +468,7 @@ async function updateWitchLoveWorkspace() {
 	notification.progress?.report({
 		message: 'Witch Love Script updated!\nUpdating Workspace Settings...',
 		increment: 50,
-	});
+	}); */
 
 	let new_settings = await fetchFileJson(
 		'https://gist.githubusercontent.com/Singulariity/55749720793d156306dafdc2e597a107/raw/settings.json'
@@ -499,6 +499,10 @@ async function updateWitchLoveWorkspace() {
 			encoding: 'utf-8',
 		}
 	);
+	notification.progress?.report({
+		message: 'Witch Love Settings updated!\nUpdating README file...',
+		increment: 50,
+	});
 
 	let new_readme = await fetchFileText('https://gist.githubusercontent.com/Singulariity/817d9819133be88d898be6bfc78e084f/raw/README.md');
 	if (!new_readme) {
