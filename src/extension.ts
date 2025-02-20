@@ -77,7 +77,9 @@ export async function activate(context: vscode.ExtensionContext) {
 async function versionChecker(current_version?: string) {
 	if (!current_version) return;
 
-	let res = await fetchFileJson('https://raw.githubusercontent.com/Witch-Love/witchlove-vscode/master/package.json');
+	let res = await fetchFileJson(
+		'https://raw.githubusercontent.com/Witch-Love/witchlove-vscode/master/package.json'
+	);
 
 	if (!res) return;
 
@@ -94,10 +96,11 @@ async function initGlossary() {
 	let exp = new RegExp(/\\* (.{1,40}) `->` (.*)$/, 'gim');
 
 	//UMINEKO
-	let res_umineko = await fetchFileText('https://raw.githubusercontent.com/Witch-Love/witch-love.github.io/main/mkdocs/docs/umineko/contributing/rules.md');
+	let res_umineko = await fetchFileText(
+		'https://raw.githubusercontent.com/Witch-Love/witch-love.github.io/main/mkdocs/docs/umineko/contributing/rules.md'
+	);
 
 	if (!res_umineko) return;
-
 
 	for (let match of res_umineko.matchAll(exp)) {
 		glossary.umineko[match[1]] = match[2];
@@ -109,24 +112,22 @@ async function initGlossary() {
 	);
 
 	if (!res_higurashi) return;
-	
+
 	for (let match of res_higurashi.matchAll(exp)) {
 		glossary.higurashi[match[1]] = match[2];
 	}
 }
 
 async function initLens() {
-	let res = await fetchFileText('https://gist.githubusercontent.com/Singulariity/0b41a4872b8039204b1450b5485c894a/raw/lens_data.json')
+	let res = await fetchFileText(
+		'https://gist.githubusercontent.com/Singulariity/0b41a4872b8039204b1450b5485c894a/raw/lens_data.json'
+	);
 
 	if (!res) return;
 
-	fs.writeFileSync(
-		extensionFilePath('lens_data.json'),
-		res,
-		{
-			encoding: 'utf-8',
-		}
-	);
+	fs.writeFileSync(extensionFilePath('lens_data.json'), res, {
+		encoding: 'utf-8',
+	});
 }
 
 async function initColorImages() {
@@ -175,7 +176,9 @@ function initListeners(context: vscode.ExtensionContext) {
 				triggerUpdateDecorations();
 
 				let filename = path.basename(editor.document.fileName, '.txt');
-				let datapath = context.asAbsolutePath(`data/data/${filename}.json`);
+				let datapath = context.asAbsolutePath(
+					`data/data/${filename}.json`
+				);
 				updateVoicelines(datapath);
 			}
 		},
@@ -218,7 +221,8 @@ function loadSettings(context: vscode.ExtensionContext) {
 		},
 		listen_volume: conf.get<number>('lineListening.volume')!,
 		deepl_key: conf.get<string>('deepl.deeplKey')!,
-		deepl_notification: conf.get<string>('deepl.translateNotification')! == 'Yes'
+		deepl_notification:
+			conf.get<string>('deepl.translateNotification')! == 'Yes',
 	};
 }
 
@@ -247,7 +251,7 @@ function initStatusbarItem() {
 	statusbarItem.backgroundColor = new vscode.ThemeColor(
 		'statusBarItem.warningBackground'
 	);
-	statusbarItem.tooltip = "Alt + Q"
+	statusbarItem.tooltip = 'Alt + Q';
 }
 
 function initTranslateBarItem() {
@@ -261,7 +265,7 @@ function initTranslateBarItem() {
 		'statusBarItem.errorBackground'
 	);
 	translatebarItem.text = `$(notebook-edit) Translate`;
-	translatebarItem.tooltip = "Alt + A"
+	translatebarItem.tooltip = 'Alt + A';
 }
 
 export function updateVoicelines(path: string) {
@@ -280,7 +284,7 @@ function updateDecorations() {
 		return;
 	}
 
-	activeEditor.document.fileName
+	activeEditor.document.fileName;
 
 	let file_name = path.basename(activeEditor.document.fileName, '.txt');
 	let file_data_path = `data/data/${file_name}.json`;
@@ -326,7 +330,7 @@ function updateDecorations() {
 			let char_id = data[i + 1];
 			if (char_id instanceof Array) {
 				if (char_id[0] == '999' && char_id[1]) {
-					char_id = "Unknown";
+					char_id = 'Unknown';
 				} else {
 					char_id = char_id[0];
 				}
@@ -445,10 +449,13 @@ async function updateWitchLoveWorkspace() {
 	let script_path = folders[0].uri.fsPath + '/script.php';
 	let ws_settings_path = folders[0].uri.fsPath + '/Witch Love.code-workspace';
 	let readme_path = folders[0].uri.fsPath + '/README.md';
+	let readme2_path = folders[0].uri.fsPath + '/README_çeviri.md';
 
-	let notification = DisposableNotification('Updating Witch Love Settings...');
+	let notification = DisposableNotification(
+		'Updating Witch Love Settings...'
+	);
 
-/* 	let new_script = await fetchFileText(
+	/* 	let new_script = await fetchFileText(
 		'https://gist.githubusercontent.com/Singulariity/8a9ae39062225dc9e12e2431fdc3057c/raw/script.php'
 	);
 	if (!new_script) {
@@ -504,7 +511,9 @@ async function updateWitchLoveWorkspace() {
 		increment: 50,
 	});
 
-	let new_readme = await fetchFileText('https://gist.githubusercontent.com/Singulariity/817d9819133be88d898be6bfc78e084f/raw/README.md');
+	let new_readme = await fetchFileText(
+		'https://gist.githubusercontent.com/Singulariity/817d9819133be88d898be6bfc78e084f/raw/README.md'
+	);
 	if (!new_readme) {
 		notification.close();
 		let selection = await vscode.window.showErrorMessage(
@@ -518,7 +527,25 @@ async function updateWitchLoveWorkspace() {
 		return;
 	}
 
-	fs.writeFileSync(readme_path, new_readme, {encoding: 'utf-8'})
+	fs.writeFileSync(readme_path, new_readme, { encoding: 'utf-8' });
+
+	let new_readme2 = await fetchFileText(
+		'https://gist.githubusercontent.com/Singulariity/8308ebb12c2de349e1f9b0ea1ad18601/raw/README_%C3%A7eviri.md'
+	);
+	if (!new_readme2) {
+		notification.close();
+		let selection = await vscode.window.showErrorMessage(
+			'Updating is failed. Please check your internet connection.',
+			'Try Again',
+			'Close'
+		);
+		if (selection == 'Try Again') {
+			updateWitchLoveWorkspace();
+		}
+		return;
+	}
+
+	fs.writeFileSync(readme2_path, new_readme2, { encoding: 'utf-8' });
 
 	notification.close();
 
