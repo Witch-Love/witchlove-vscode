@@ -450,8 +450,8 @@ async function updateWitchLoveWorkspace() {
 	const ws_settings_path =
 		folders[0].uri.fsPath + '/Witch Love.code-workspace';
 	const old_readme = folders[0].uri.fsPath + '/README.md';
-	const readme_path = folders[0].uri.fsPath + '/README_redaksiyon.md';
-	const readme2_path = folders[0].uri.fsPath + '/README_çeviri.md';
+	const readme_redaction = folders[0].uri.fsPath + '/README_redaksiyon.md';
+	const readme_translation = folders[0].uri.fsPath + '/README_çeviri.md';
 
 	let notification = DisposableNotification(
 		'Updating Witch Love Settings...'
@@ -515,10 +515,10 @@ async function updateWitchLoveWorkspace() {
 		increment: 50,
 	});
 
-	let new_readme = await fetchFileText(
+	let new_readme_redaction = await fetchFileText(
 		'https://gist.githubusercontent.com/Singulariity/817d9819133be88d898be6bfc78e084f/raw/README_redaksiyon.md'
 	);
-	if (!new_readme) {
+	if (!new_readme_redaction) {
 		notification.close();
 		let selection = await vscode.window.showErrorMessage(
 			'Updating is failed. Please check your internet connection.',
@@ -531,12 +531,14 @@ async function updateWitchLoveWorkspace() {
 		return;
 	}
 
-	fs.writeFileSync(readme_path, new_readme, { encoding: 'utf-8' });
+	fs.writeFileSync(readme_redaction, new_readme_redaction, {
+		encoding: 'utf-8',
+	});
 
-	let new_readme2 = await fetchFileText(
-		'https://gist.githubusercontent.com/Singulariity/8308ebb12c2de349e1f9b0ea1ad18601/raw/README_%C3%A7eviri.md'
+	let new_readme_translation = await fetchFileText(
+		'https://gist.githubusercontent.com/Singulariity/8308ebb12c2de349e1f9b0ea1ad18601/raw/README_çeviri.md'
 	);
-	if (!new_readme2) {
+	if (!new_readme_translation) {
 		notification.close();
 		let selection = await vscode.window.showErrorMessage(
 			'Updating is failed. Please check your internet connection.',
@@ -549,7 +551,9 @@ async function updateWitchLoveWorkspace() {
 		return;
 	}
 
-	fs.writeFileSync(readme2_path, new_readme2, { encoding: 'utf-8' });
+	fs.writeFileSync(readme_translation, new_readme_translation, {
+		encoding: 'utf-8',
+	});
 
 	notification.close();
 
