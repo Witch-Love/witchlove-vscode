@@ -11,6 +11,7 @@ import {
 	generateColorImage,
 	generateDecoration,
 	getSeededColor,
+	getWorkspaceFolder,
 	isFileExists,
 } from './utils';
 import initListen from './commands/listen';
@@ -48,7 +49,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	initTranslateBarItem();
 
 	// COMMAND INITS
-	initListen(context);
+	await initListen(context);
 	initTranslate(context);
 
 	// LISTENER INITS
@@ -77,7 +78,7 @@ export async function activate(context: vscode.ExtensionContext) {
 async function versionChecker(current_version?: string) {
 	if (!current_version) return;
 
-	let res = await fetchFileJson(
+	const res = await fetchFileJson(
 		'https://raw.githubusercontent.com/Witch-Love/witchlove-vscode/master/package.json'
 	);
 
@@ -93,7 +94,7 @@ async function versionChecker(current_version?: string) {
 }
 
 async function initGlossary() {
-	let exp = new RegExp(/\\* (.{1,40}) `->` (.*)$/, 'gim');
+	const exp = new RegExp(/\\* (.{1,40}) `->` (.*)$/, 'gim');
 
 	//UMINEKO
 	let res_umineko = await fetchFileText(
@@ -381,7 +382,7 @@ function updateDecorations() {
 					);
 
 					let hoverMessage = new vscode.MarkdownString(
-						`<span style="color:#ffcc00;">${tr}</span> — <a href="https://witch-love.com/wiki/${
+						`<span style="color:#ffcc00;">${tr}</span> — <a href="https://witch-love.com/${
 							file_type == 'umineko'
 								? 'umineko/contributing/rules'
 								: 'higurashi/contributing/rules'
@@ -440,23 +441,20 @@ function triggerUpdateDecorations(throttle = false) {
 }
 
 async function updateWitchLoveWorkspace() {
-	if (vscode.workspace.name != 'Witch Love (Workspace)') return;
+	const folder = getWorkspaceFolder();
+	if (!folder) return;
 
-	let folders = vscode.workspace.workspaceFolders;
-
-	if (!folders) return;
-
-	const script_path = folders[0].uri.fsPath + '/script.php';
-	const ws_settings_path =
-		folders[0].uri.fsPath + '/Witch Love.code-workspace';
-	const old_readme = folders[0].uri.fsPath + '/README.md';
-	const readme_redaction = folders[0].uri.fsPath + '/README_redaksiyon.md';
-	const readme_translation = folders[0].uri.fsPath + '/README_çeviri.md';
+	// const script_path = folder.uri.fsPath + '/script.php';
+	const ws_settings_path = folder.uri.fsPath + '/Witch Love.code-workspace';
+	const readme_redaction = folder.uri.fsPath + '/README_redaksiyon.md';
+	const readme_translation = folder.uri.fsPath + '/README_çeviri.md';
 
 	let notification = DisposableNotification(
 		'Updating Witch Love Settings...'
 	);
 
+	// delete old readme -- remove this lines later
+	const old_readme = folder.uri.fsPath + '/README.md';
 	fs.unlink(old_readme, function (err) {});
 
 	/* 	let new_script = await fetchFileText(

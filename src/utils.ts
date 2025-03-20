@@ -1,9 +1,10 @@
+import { ProgressLocation, window, workspace } from 'vscode';
+import { exec } from 'child_process';
 import * as random from 'random-seed';
 import * as fs from 'fs';
 import * as Jimp from 'jimp';
 import fetch from 'node-fetch';
 import { ColorActionName } from '@jimp/plugin-color';
-import { ProgressLocation, window } from 'vscode';
 
 import { Notification } from './types';
 
@@ -139,10 +140,39 @@ export async function fetchFileText(url: string) {
 	return await res.text();
 }
 
-export async function fetchFileJson(url: string): Promise<{[key: string]: any;} | undefined> {
+export async function fetchFileJson(
+	url: string
+): Promise<{ [key: string]: any } | undefined> {
 	let res = await fetch(url);
 
 	if (!res.ok) return;
 
 	return await res.json();
+}
+
+export function getWorkspaceFolder() {
+	if (workspace.name != 'Witch Love (Workspace)') return;
+
+	const folders = workspace.workspaceFolders;
+
+	if (!folders) return;
+
+	const found = folders.find((folder) => folder.name == 'Translation');
+
+	if (!found) return;
+
+	if (!fs.existsSync(found.uri.fsPath + '/Witch Love.code-workspace')) return;
+
+	return found;
+}
+
+export async function isFFmpegInstalled(): Promise<boolean> {
+	return new Promise((resolve, reject) => {
+		exec('ffmpeg -version', (error) => {
+			if (error) {
+				return resolve(false);
+			}
+			return resolve(true);
+		});
+	});
 }

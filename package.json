@@ -8,7 +8,7 @@
 		"url": "https://github.com/Witch-Love/witchlove-vscode"
 	},
 	"license": "MIT",
-	"version": "0.5.3",
+	"version": "0.5.4",
 	"engines": {
 		"vscode": "^1.81.0"
 	},
@@ -145,16 +145,16 @@
 		"version-minor": "npm version minor --no-git-tag-version",
 		"version-major": "npm version major --no-git-tag-version",
 		"minify": "modclean",
-		"package": "vsce package",
+		"package": "npm run build && vsce package",
 		"vscode:prepublish": "npm run esbuild-base -- --minify",
-		"compile": "tsc -p ./",
-		"watch": "tsc -watch -p ./",
-		"pretest": "npm run compile && npm run lint",
+		"build": "rimraf out && tsc -p ./",
+		"watch": "rimraf out && tsc -watch -p ./",
+		"pretest": "npm run build && npm run lint",
 		"lint": "eslint src --ext ts",
 		"esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
 		"esbuild": "npm run esbuild-base -- --sourcemap",
 		"esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
-		"test-compile": "tsc -p ./"
+		"test-build": "tsc -p ./"
 	},
 	"devDependencies": {
 		"@types/mocha": "^10.0.1",
@@ -162,6 +162,7 @@
 		"@types/node-fetch": "^2.6.4",
 		"@types/random-seed": "^0.3.3",
 		"@types/vscode": "^1.81.0",
+		"@types/copy-paste": "^1.1.33",
 		"@typescript-eslint/eslint-plugin": "^6.4.1",
 		"@typescript-eslint/parser": "^6.4.1",
 		"@vscode/test-electron": "^2.3.4",
@@ -170,10 +171,10 @@
 		"eslint": "^8.47.0",
 		"glob": "^10.3.3",
 		"mocha": "^10.2.0",
+		"rimraf": "^6.0.1",
 		"typescript": "^5.1.6"
 	},
 	"dependencies": {
-		"@types/copy-paste": "^1.1.33",
 		"compare-versions": "^6.1.0",
 		"copy-paste": "^1.5.3",
 		"deepl-node": "^1.11.0",

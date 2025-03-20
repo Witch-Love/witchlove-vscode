@@ -3,10 +3,26 @@ import path from 'path';
 import * as fs from 'fs';
 
 import { updateVoicelines } from '../extension';
-import { extensionFilePath, isFileExists } from '../utils';
+import {
+	extensionFilePath,
+	getWorkspaceFolder,
+	isFFmpegInstalled,
+	isFileExists,
+} from '../utils';
 
-export default function initListen(context: ExtensionContext) {
-	let command = commands.registerCommand('witchLove.listen', Command);
+let ffplayLoc: string | undefined;
+const variables = '-fast -autoexit -nodisp -nostats -hide_banner';
+
+export default async function initListen(context: ExtensionContext) {
+	const command = commands.registerCommand('witchLove.listen', Command);
+
+	const isInstalled = await isFFmpegInstalled();
+	if (!isInstalled) {
+		const folder = getWorkspaceFolder();
+		if (!folder) return;
+
+		ffplayLoc = folder.uri.fsPath + '/extra/ffmpeg';
+	}
 
 	context.subscriptions.push(command);
 }
@@ -70,15 +86,17 @@ async function Command() {
 	let terminal = window.terminals
 		.filter((terminal) => terminal.name == 'Listen')
 		.at(0);
+
 	if (!terminal) {
 		terminal = window.createTerminal('Listen');
+		if (ffplayLoc) terminal.sendText(`cd ` + ffplayLoc);
 	}
 	if (voicelines[line][2] && voicelines[line][2] == 'red') {
 		terminal.sendText(
-			`ffplay -fast -autoexit -nodisp -t 00:02 -volume ${config.listen_volume} "${config.paths.umineko}/sound/se/umise_059.ogg"`
+			`ffplay -t 00:02 ${variables} -volume ${config.listen_volume} "${config.paths.umineko}/sound/se/umise_059.ogg"`
 		);
 	}
 	terminal.sendText(
-		`ffplay -fast -autoexit -nodisp -volume ${config.listen_volume} "${voice_file_path}"`
+		`ffplay ${variables} -volume ${config.listen_volume} "${voice_file_path}"`
 	);
 }
