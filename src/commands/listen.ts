@@ -1,6 +1,6 @@
-import { ExtensionContext, commands, window } from 'vscode';
-import path from 'path';
 import * as fs from 'fs';
+import path from 'path';
+import { ExtensionContext, commands, window } from 'vscode';
 
 import { updateVoicelines } from '../extension';
 import {
@@ -46,26 +46,35 @@ async function Command() {
 
 	if (!(voicelines[line] instanceof Array) || !voicelines[line][1]) return;
 
-	let voice_file_path;
+	let voiceFilePath;
 	if (filename.includes('umi')) {
-		voice_file_path = `${config.paths.umineko}/sound/voice/${voicelines[line][0]}/${voicelines[line][1]}.ogg`;
+		voiceFilePath = `${config.paths.umineko}/sound/voice/${voicelines[line][0]}/${voicelines[line][1]}.ogg`;
 	} else {
 		outer: for (let i = 0; i < config.paths.higurashi.length; i++) {
 			for (let j = 1; j <= 10; j++) {
-				let ch_data_dir = `HigurashiEp${j
+				var chapterDataDir = `HigurashiEp${j
 					.toString()
-					.padStart(2, '0')}_Data`;
+					.padStart(2, '0')}`;
 
-				let check = `${config.paths.higurashi[i]}/${ch_data_dir}/StreamingAssets/voice/${voicelines[line][1]}.ogg`;
+				switch (process.platform) {
+					case 'darwin':
+						chapterDataDir += '.app/Contents/Resources/Data';
+						break;
+					default:
+						chapterDataDir += '_Data';
+						break;
+				}
+
+				let check = `${config.paths.higurashi[i]}/${chapterDataDir}/StreamingAssets/voice/${voicelines[line][1]}.ogg`;
 				if (fs.existsSync(check)) {
-					voice_file_path = check;
+					voiceFilePath = check;
 					break outer;
 				}
 			}
 		}
 	}
 
-	if (!voice_file_path || !fs.existsSync(voice_file_path)) {
+	if (!voiceFilePath || !fs.existsSync(voiceFilePath)) {
 		window
 			.showErrorMessage(
 				`Voice file of line ${line} couldn't found. Make sure you have configured the settings correctly.`,
@@ -97,6 +106,6 @@ async function Command() {
 		);
 	}
 	terminal.sendText(
-		`ffplay ${variables} -volume ${config.listen_volume} "${voice_file_path}"`
+		`ffplay ${variables} -volume ${config.listen_volume} "${voiceFilePath}"`
 	);
 }
