@@ -1,8 +1,11 @@
-import * as vscode from 'vscode';
+import { compareVersions } from 'compare-versions';
 import * as fs from 'fs';
 import path from 'path';
-import { compareVersions } from 'compare-versions';
+import * as vscode from 'vscode';
 
+import initListen from './commands/listen';
+import initTranslate from './commands/translate';
+import LensProvider from './providers/LensProvider';
 import {
 	DisposableNotification,
 	extensionFilePath,
@@ -14,9 +17,6 @@ import {
 	getWorkspaceFolder,
 	isFileExists,
 } from './utils';
-import initListen from './commands/listen';
-import initTranslate from './commands/translate';
-import LensProvider from './providers/LensProvider';
 
 async function extensionOnReady(context: vscode.ExtensionContext) {
 	if (activeEditor) {
@@ -79,7 +79,7 @@ async function versionChecker(current_version?: string) {
 	if (!current_version) return;
 
 	const res = await fetchFileJson(
-		'https://raw.githubusercontent.com/Witch-Love/witchlove-vscode/master/package.json'
+		'https://raw.githubusercontent.com/Witch-Love/witchlove-vscode/master/package.json',
 	);
 
 	if (!res) return;
@@ -88,7 +88,7 @@ async function versionChecker(current_version?: string) {
 
 	if (compareVersions(current_version, latest_version) == -1) {
 		vscode.window.showWarningMessage(
-			`There is a new version (v${latest_version}) of the extension! Your version is v${current_version}. Please use the latest version!`
+			`There is a new version (v${latest_version}) of the extension! Your version is v${current_version}. Please use the latest version!`,
 		);
 	}
 }
@@ -98,7 +98,7 @@ async function initGlossary() {
 
 	//UMINEKO
 	let res_umineko = await fetchFileText(
-		'https://raw.githubusercontent.com/Witch-Love/witch-love.github.io/main/mkdocs/docs/umineko/contributing/rules.md'
+		'https://raw.githubusercontent.com/Witch-Love/witch-love.github.io/main/mkdocs/docs/umineko/contributing/rules.md',
 	);
 
 	if (!res_umineko) return;
@@ -109,7 +109,7 @@ async function initGlossary() {
 
 	//HIGURASHI
 	let res_higurashi = await fetchFileText(
-		'https://raw.githubusercontent.com/Witch-Love/witch-love.github.io/main/mkdocs/docs/higurashi/contributing/rules.md'
+		'https://raw.githubusercontent.com/Witch-Love/witch-love.github.io/main/mkdocs/docs/higurashi/contributing/rules.md',
 	);
 
 	if (!res_higurashi) return;
@@ -121,7 +121,7 @@ async function initGlossary() {
 
 async function initLens() {
 	let res = await fetchFileText(
-		'https://gist.githubusercontent.com/Singulariity/0b41a4872b8039204b1450b5485c894a/raw/lens_data.json'
+		'https://gist.githubusercontent.com/Singulariity/0b41a4872b8039204b1450b5485c894a/raw/lens_data.json',
 	);
 
 	if (!res) return;
@@ -178,13 +178,13 @@ function initListeners(context: vscode.ExtensionContext) {
 
 				let filename = path.basename(editor.document.fileName, '.txt');
 				let datapath = context.asAbsolutePath(
-					`data/data/${filename}.json`
+					`data/data/${filename}.json`,
 				);
 				updateVoicelines(datapath);
 			}
 		},
 		null,
-		context.subscriptions
+		context.subscriptions,
 	);
 	vscode.workspace.onDidChangeTextDocument(
 		(event) => {
@@ -193,7 +193,7 @@ function initListeners(context: vscode.ExtensionContext) {
 			}
 		},
 		null,
-		context.subscriptions
+		context.subscriptions,
 	);
 	vscode.workspace.onDidChangeConfiguration(() => {
 		loadSettings(context);
@@ -215,11 +215,12 @@ function loadSettings(context: vscode.ExtensionContext) {
 		paths: {
 			characters: context.asAbsolutePath('characters.json'),
 			higurashi: conf.get<string[]>(
-				'lineListening.higurashiDirectories'
+				'lineListening.higurashiDirectories',
 			)!,
 			umineko: conf.get<string>('lineListening.uminekoDirectory')!,
 			extension: context.extensionPath,
 		},
+		online_token: conf.get<string>('lineListening.onlineToken')!,
 		listen_volume: conf.get<number>('lineListening.volume')!,
 		deepl_key: conf.get<string>('deepl.deeplKey')!,
 		deepl_notification:
@@ -245,12 +246,12 @@ function initCharacters() {
 function initStatusbarItem() {
 	global.statusbarItem = vscode.window.createStatusBarItem(
 		vscode.StatusBarAlignment.Right,
-		10000
+		10000,
 	);
 
 	statusbarItem.command = 'witchLove.listen';
 	statusbarItem.backgroundColor = new vscode.ThemeColor(
-		'statusBarItem.warningBackground'
+		'statusBarItem.warningBackground',
 	);
 	statusbarItem.tooltip = 'Alt + Q';
 }
@@ -258,12 +259,12 @@ function initStatusbarItem() {
 function initTranslateBarItem() {
 	global.translatebarItem = vscode.window.createStatusBarItem(
 		vscode.StatusBarAlignment.Right,
-		11000
+		11000,
 	);
 
 	translatebarItem.command = 'witchLove.translate';
 	translatebarItem.backgroundColor = new vscode.ThemeColor(
-		'statusBarItem.errorBackground'
+		'statusBarItem.errorBackground',
 	);
 	translatebarItem.text = `$(notebook-edit) Translate`;
 	translatebarItem.tooltip = 'Alt + A';
@@ -297,7 +298,7 @@ function updateDecorations() {
 	}
 
 	let data = JSON.parse(
-		fs.readFileSync(extensionFilePath(file_data_path), 'utf-8')
+		fs.readFileSync(extensionFilePath(file_data_path), 'utf-8'),
 	);
 
 	const decorationArrsText = new Map<string, vscode.DecorationOptions[]>();
@@ -325,7 +326,7 @@ function updateDecorations() {
 		if (match !== null && match.index !== undefined) {
 			let default_range = new vscode.Range(
 				new vscode.Position(i, 0),
-				new vscode.Position(i, config.hover_width)
+				new vscode.Position(i, config.hover_width),
 			);
 
 			let char_id = data[i + 1];
@@ -345,7 +346,7 @@ function updateDecorations() {
 			let hoverMessage = new vscode.MarkdownString(
 				`<span style="color:${characters.get(char_id)?.color};"><b> ${
 					characters.get(char_id)?.display_name
-				}</b></span>`
+				}</b></span>`,
 			);
 			hoverMessage.supportHtml = true;
 
@@ -365,8 +366,8 @@ function updateDecorations() {
 				file_type == 'umineko'
 					? glossary.umineko
 					: file_type == 'higurashi'
-					? glossary.higurashi
-					: undefined;
+						? glossary.higurashi
+						: undefined;
 			if (!glos) continue;
 
 			for (let [en, tr] of Object.entries(glos)) {
@@ -378,7 +379,7 @@ function updateDecorations() {
 
 					let range = new vscode.Range(
 						new vscode.Position(i, item.index),
-						new vscode.Position(i, item.index + item[0].length)
+						new vscode.Position(i, item.index + item[0].length),
 					);
 
 					let hoverMessage = new vscode.MarkdownString(
@@ -386,7 +387,7 @@ function updateDecorations() {
 							file_type == 'umineko'
 								? 'umineko/contributing/rules'
 								: 'higurashi/contributing/rules'
-						}">Tüm Liste</a>`
+						}">Tüm Liste</a>`,
 					);
 					hoverMessage.supportHtml = true;
 
@@ -450,7 +451,7 @@ async function updateWitchLoveWorkspace() {
 	const readme_translation = folder.uri.fsPath + '/README_çeviri.md';
 
 	let notification = DisposableNotification(
-		'Updating Witch Love Settings...'
+		'Updating Witch Love Settings...',
 	);
 
 	// delete old readme -- remove this lines later
@@ -480,14 +481,14 @@ async function updateWitchLoveWorkspace() {
 	}); */
 
 	let new_settings = await fetchFileJson(
-		'https://gist.githubusercontent.com/Singulariity/55749720793d156306dafdc2e597a107/raw/settings.json'
+		'https://gist.githubusercontent.com/Singulariity/55749720793d156306dafdc2e597a107/raw/settings.json',
 	);
 	if (!new_settings) {
 		notification.close();
 		let selection = await vscode.window.showErrorMessage(
 			'Updating is failed. Please check your internet connection.',
 			'Try Again',
-			'Close'
+			'Close',
 		);
 		if (selection == 'Try Again') {
 			updateWitchLoveWorkspace();
@@ -506,7 +507,7 @@ async function updateWitchLoveWorkspace() {
 		JSON.stringify(current_settings, null, 4),
 		{
 			encoding: 'utf-8',
-		}
+		},
 	);
 	notification.progress?.report({
 		message: 'Witch Love Settings updated!\nUpdating README files...',
@@ -514,14 +515,14 @@ async function updateWitchLoveWorkspace() {
 	});
 
 	let new_readme_redaction = await fetchFileText(
-		'https://gist.githubusercontent.com/Singulariity/817d9819133be88d898be6bfc78e084f/raw/README_redaksiyon.md'
+		'https://gist.githubusercontent.com/Singulariity/817d9819133be88d898be6bfc78e084f/raw/README_redaksiyon.md',
 	);
 	if (!new_readme_redaction) {
 		notification.close();
 		let selection = await vscode.window.showErrorMessage(
 			'Updating is failed. Please check your internet connection.',
 			'Try Again',
-			'Close'
+			'Close',
 		);
 		if (selection == 'Try Again') {
 			updateWitchLoveWorkspace();
@@ -534,14 +535,14 @@ async function updateWitchLoveWorkspace() {
 	});
 
 	let new_readme_translation = await fetchFileText(
-		'https://gist.githubusercontent.com/Singulariity/8308ebb12c2de349e1f9b0ea1ad18601/raw/README_çeviri.md'
+		'https://gist.githubusercontent.com/Singulariity/8308ebb12c2de349e1f9b0ea1ad18601/raw/README_çeviri.md',
 	);
 	if (!new_readme_translation) {
 		notification.close();
 		let selection = await vscode.window.showErrorMessage(
 			'Updating is failed. Please check your internet connection.',
 			'Try Again',
-			'Close'
+			'Close',
 		);
 		if (selection == 'Try Again') {
 			updateWitchLoveWorkspace();
@@ -556,7 +557,7 @@ async function updateWitchLoveWorkspace() {
 	notification.close();
 
 	notification = DisposableNotification(
-		'Witch Love Workspace updated successfully!'
+		'Witch Love Workspace updated successfully!',
 	);
 	notification.progress?.report({ increment: 100 });
 	setTimeout(() => {

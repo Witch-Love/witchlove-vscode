@@ -20,6 +20,23 @@
 		{
 			"title": "Epitaph (don't touch)",
 			"start": 943
+		},
+		{
+			"title": "Epitaph parts",
+			"start": 23,
+			"end": 24
+		},
+	],
+	"umi2_6": [
+		{
+			"title": "Epitaph parts",
+			"start": 95,
+			"end": 96
+		},
+		{
+			"title": "Epitaph parts",
+			"start": 209,
+			"end": 211
 		}
 	]
 }

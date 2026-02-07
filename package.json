@@ -8,7 +8,7 @@
 		"url": "https://github.com/Witch-Love/witchlove-vscode"
 	},
 	"license": "MIT",
-	"version": "0.5.6",
+	"version": "0.5.7",
 	"engines": {
 		"vscode": "^1.81.0"
 	},
@@ -108,6 +108,11 @@
 					"witchLove.lineListening.uminekoDirectory": {
 						"type": "string",
 						"markdownDescription": "Directory of Umineko Project. **Required for the line listening**   \nPress `Alt+Q` to listen current line.   \n\nExample: `E:\\Files\\UminekoProject`",
+						"default": ""
+					},
+					"witchLove.lineListening.onlineToken": {
+						"type": "string",
+						"markdownDescription": "Access token for online listening (Only for Umineko). **Required for the online listening**   \nPress `Alt+Q` to listen current line.",
 						"default": ""
 					},
 					"witchLove.lineListening.volume": {

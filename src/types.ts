@@ -10,6 +10,7 @@ export type Character = {
 };
 
 export type Config = {
+	online_token: string;
 	listen_volume: number;
 	hover_width: number;
 	line_color_opacity: number;
@@ -20,7 +21,7 @@ export type Config = {
 		extension: string;
 	};
 	deepl_key: string;
-	deepl_notification: boolean
+	deepl_notification: boolean;
 };
 
 export type Notification = {

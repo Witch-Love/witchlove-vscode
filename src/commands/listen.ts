@@ -36,7 +36,6 @@ async function Command() {
 		let dirs = path.dirname(activeEditor.document.fileName).split(/\\|\//);
 		datapath = `data/data/${dirs[dirs.length - 1]}/${filename}.json`;
 	}
-
 	if (!voicelines) {
 		updateVoicelines(extensionFilePath(datapath));
 		if (!voicelines) return;
@@ -46,9 +45,28 @@ async function Command() {
 
 	if (!(voicelines[line] instanceof Array) || !voicelines[line][1]) return;
 
+	// COMMAND PART BELOW
+	// COMMAND PART BELOW
+	// COMMAND PART BELOW
+	// COMMAND PART BELOW
+	// COMMAND PART BELOW
+	// COMMAND PART BELOW
+
+	const listenOnline = config.online_token.length > 0;
+	const FINAL_VARIABLES = listenOnline
+		? variables +
+			` -headers "Authorization: Bearer ${config.online_token}\r\n"`
+		: variables;
+	let basePath = '';
+
 	let voiceFilePath;
+
 	if (filename.includes('umi')) {
-		voiceFilePath = `${config.paths.umineko}/sound/voice/${voicelines[line][0]}/${voicelines[line][1]}.ogg`;
+		basePath = listenOnline
+			? 'https://cdn.witch-love.com/private/umineko'
+			: config.paths.umineko;
+
+		voiceFilePath = `${basePath}/sound/voice/${voicelines[line][0]}/${voicelines[line][1]}.ogg`;
 	} else {
 		outer: for (let i = 0; i < config.paths.higurashi.length; i++) {
 			for (let j = 1; j <= 10; j++) {
@@ -74,18 +92,18 @@ async function Command() {
 		}
 	}
 
-	if (!voiceFilePath || !fs.existsSync(voiceFilePath)) {
+	if (!voiceFilePath || (!listenOnline && !fs.existsSync(voiceFilePath))) {
 		window
 			.showErrorMessage(
 				`Voice file of line ${line} couldn't found. Make sure you have configured the settings correctly.`,
 				'Open Settings',
-				'Close'
+				'Close',
 			)
 			.then((select) => {
 				if (select == 'Open Settings') {
 					commands.executeCommand(
 						'workbench.action.openSettings',
-						'witchLove.lineListening'
+						'witchLove.lineListening',
 					);
 				}
 			});
@@ -98,14 +116,16 @@ async function Command() {
 
 	if (!terminal) {
 		terminal = window.createTerminal('Listen');
-		if (ffplayLoc) terminal.sendText(`cd ` + ffplayLoc);
+		if (ffplayLoc) {
+			terminal.sendText(`cd ` + ffplayLoc);
+		}
 	}
 	if (voicelines[line][2] && voicelines[line][2] == 'red') {
 		terminal.sendText(
-			`ffplay -t 00:02 ${variables} -volume ${config.listen_volume} "${config.paths.umineko}/sound/se/umise_059.ogg"`
+			`ffplay -t 00:02 ${FINAL_VARIABLES} -volume ${config.listen_volume} "${basePath}/sound/se/umise_059.ogg"`,
 		);
 	}
 	terminal.sendText(
-		`ffplay ${variables} -volume ${config.listen_volume} "${voiceFilePath}"`
+		`ffplay ${FINAL_VARIABLES} -volume ${config.listen_volume} "${voiceFilePath}"`,
 	);
 }
