@@ -454,32 +454,6 @@ async function updateWitchLoveWorkspace() {
 		'Updating Witch Love Settings...',
 	);
 
-	// delete old readme -- remove this lines later
-	const old_readme = folder.uri.fsPath + '/README.md';
-	fs.unlink(old_readme, function (err) {});
-
-	/* 	let new_script = await fetchFileText(
-		'https://gist.githubusercontent.com/Singulariity/8a9ae39062225dc9e12e2431fdc3057c/raw/script.php'
-	);
-	if (!new_script) {
-		notification.close();
-		let selection = await vscode.window.showErrorMessage(
-			'Updating is failed. Please check your internet connection.',
-			'Try Again',
-			'Close'
-		);
-		if (selection == 'Try Again') {
-			updateWitchLoveWorkspace();
-		}
-		return;
-	}
-
-	fs.writeFileSync(script_path, new_script, { encoding: 'utf-8' });
-	notification.progress?.report({
-		message: 'Witch Love Script updated!\nUpdating Workspace Settings...',
-		increment: 50,
-	}); */
-
 	let new_settings = await fetchFileJson(
 		'https://gist.githubusercontent.com/Singulariity/55749720793d156306dafdc2e597a107/raw/settings.json',
 	);
