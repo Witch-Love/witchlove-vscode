@@ -63,7 +63,7 @@ async function Command() {
 
 	if (filename.includes('umi')) {
 		basePath = listenOnline
-			? 'https://cdn.witch-love.com/private/umineko'
+			? 'https://cdn.witch-love.com/p/umineko'
 			: config.paths.umineko;
 
 		voiceFilePath = `${basePath}/sound/voice/${voicelines[line][0]}/${voicelines[line][1]}.ogg`;
