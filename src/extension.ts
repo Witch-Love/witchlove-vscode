@@ -7,7 +7,7 @@ import initListen from './commands/listen';
 import initTranslate from './commands/translate';
 import LensProvider from './providers/LensProvider';
 import {
-	DisposableNotification,
+	disposableNotification,
 	extensionFilePath,
 	fetchFileJson,
 	fetchFileText,
@@ -72,11 +72,11 @@ export async function activate(context: vscode.ExtensionContext) {
 
 /**
  *
- * @param current_version current version of the extension
+ * @param currentVersion current version of the extension
  * @returns
  */
-async function versionChecker(current_version?: string) {
-	if (!current_version) return;
+async function versionChecker(currentVersion?: string) {
+	if (!currentVersion) return;
 
 	const res = await fetchFileJson(
 		'https://raw.githubusercontent.com/Witch-Love/witchlove-vscode/master/package.json',
@@ -84,11 +84,11 @@ async function versionChecker(current_version?: string) {
 
 	if (!res) return;
 
-	let latest_version = res.version as string;
+	let latestVersion = res.version as string;
 
-	if (compareVersions(current_version, latest_version) == -1) {
+	if (compareVersions(currentVersion, latestVersion) == -1) {
 		vscode.window.showWarningMessage(
-			`There is a new version (v${latest_version}) of the extension! Your version is v${current_version}. Please use the latest version!`,
+			`There is a new version (v${latestVersion}) of the extension! Your version is v${currentVersion}. Please use the latest version!`,
 		);
 	}
 }
@@ -97,24 +97,24 @@ async function initGlossary() {
 	const exp = new RegExp(/\\* (.{1,40}) `->` (.*)$/, 'gim');
 
 	//UMINEKO
-	let res_umineko = await fetchFileText(
+	let resUmineko = await fetchFileText(
 		'https://raw.githubusercontent.com/Witch-Love/witch-love.github.io/main/mkdocs/docs/umineko/contributing/rules.md',
 	);
 
-	if (!res_umineko) return;
+	if (!resUmineko) return;
 
-	for (let match of res_umineko.matchAll(exp)) {
+	for (let match of resUmineko.matchAll(exp)) {
 		glossary.umineko[match[1]] = match[2];
 	}
 
 	//HIGURASHI
-	let res_higurashi = await fetchFileText(
+	let resHigurashi = await fetchFileText(
 		'https://raw.githubusercontent.com/Witch-Love/witch-love.github.io/main/mkdocs/docs/higurashi/contributing/rules.md',
 	);
 
-	if (!res_higurashi) return;
+	if (!resHigurashi) return;
 
-	for (let match of res_higurashi.matchAll(exp)) {
+	for (let match of resHigurashi.matchAll(exp)) {
 		glossary.higurashi[match[1]] = match[2];
 	}
 }
@@ -234,12 +234,16 @@ function initCharacters() {
 	let body = JSON.parse(fs.readFileSync(config.paths.characters, 'utf-8'));
 
 	for (var key in body) {
-		let display_name = body[key][0].length == 0 ? key : body[key][0];
+		let displayName = body[key][0].length == 0 ? key : body[key][0];
 		let color = body[key][1];
 		if (!color || color.length == 0) {
 			color = getSeededColor(key);
 		}
-		characters.set(key, { display_name, color, decoration: {} });
+		characters.set(key, {
+			display_name: displayName,
+			color,
+			decoration: {},
+		});
 	}
 }
 
@@ -288,32 +292,32 @@ function updateDecorations() {
 
 	activeEditor.document.fileName;
 
-	let file_name = path.basename(activeEditor.document.fileName, '.txt');
-	let file_data_path = `data/data/${file_name}.json`;
+	let fileName = path.basename(activeEditor.document.fileName, '.txt');
+	let fileDataPath = `data/data/${fileName}.json`;
 
-	if (!isFileExists(file_data_path)) {
+	if (!isFileExists(fileDataPath)) {
 		let dirs = path.dirname(activeEditor.document.fileName).split(/\\|\//);
-		file_data_path = `data/data/${dirs[dirs.length - 1]}/${file_name}.json`;
-		if (!isFileExists(file_data_path)) return;
+		fileDataPath = `data/data/${dirs[dirs.length - 1]}/${fileName}.json`;
+		if (!isFileExists(fileDataPath)) return;
 	}
 
 	let data = JSON.parse(
-		fs.readFileSync(extensionFilePath(file_data_path), 'utf-8'),
+		fs.readFileSync(extensionFilePath(fileDataPath), 'utf-8'),
 	);
 
 	const decorationArrsText = new Map<string, vscode.DecorationOptions[]>();
 	const decorationArrsIcon = new Map<string, vscode.DecorationOptions[]>();
-	const glossary_decors: vscode.DecorationOptions[] = [];
+	const glossaryDecors: vscode.DecorationOptions[] = [];
 	for (let [key, _] of characters) {
 		decorationArrsText.set(key, []);
 		decorationArrsIcon.set(key, []);
 	}
 
-	let file_type: 'higurashi' | 'umineko' | undefined = undefined;
+	let fileType: 'higurashi' | 'umineko' | undefined = undefined;
 	if (/(ep[1-8]|omake)\\.*\.txt/.test(activeEditor.document.fileName)) {
-		file_type = 'umineko';
+		fileType = 'umineko';
 	} else if (/ch[1-8]\\.*\.txt/.test(activeEditor.document.fileName)) {
-		file_type = 'higurashi';
+		fileType = 'higurashi';
 	}
 
 	const lines = activeEditor.document.getText().split('\n');
@@ -324,48 +328,48 @@ function updateDecorations() {
 
 		let match = lines[i].match('(.*)');
 		if (match !== null && match.index !== undefined) {
-			let default_range = new vscode.Range(
+			let defaultRange = new vscode.Range(
 				new vscode.Position(i, 0),
 				new vscode.Position(i, config.hover_width),
 			);
 
-			let char_id = data[i + 1];
-			if (char_id instanceof Array) {
-				if (char_id[0] == '999' && char_id[1]) {
-					char_id = 'Unknown';
+			let charId = data[i + 1];
+			if (charId instanceof Array) {
+				if (charId[0] == '999' && charId[1]) {
+					charId = 'Unknown';
 				} else {
-					char_id = char_id[0];
+					charId = charId[0];
 				}
 			}
 
-			let text_dec = decorationArrsText.get(char_id);
-			let icon_dec = decorationArrsIcon.get(char_id);
+			let textDec = decorationArrsText.get(charId);
+			let iconDec = decorationArrsIcon.get(charId);
 
-			if (!text_dec || !icon_dec) continue;
+			if (!textDec || !iconDec) continue;
 
 			let hoverMessage = new vscode.MarkdownString(
-				`<span style="color:${characters.get(char_id)?.color};"><b> ${
-					characters.get(char_id)?.display_name
+				`<span style="color:${characters.get(charId)?.color};"><b> ${
+					characters.get(charId)?.display_name
 				}</b></span>`,
 			);
 			hoverMessage.supportHtml = true;
 
 			let decorationText = {
-				range: default_range,
+				range: defaultRange,
 				hoverMessage,
 			};
 			let decorationIcon = {
-				range: default_range,
+				range: defaultRange,
 			};
 
-			text_dec.push(decorationText);
-			icon_dec.push(decorationIcon);
+			textDec.push(decorationText);
+			iconDec.push(decorationIcon);
 
 			//GLOSSARY
 			let glos =
-				file_type == 'umineko'
+				fileType == 'umineko'
 					? glossary.umineko
-					: file_type == 'higurashi'
+					: fileType == 'higurashi'
 						? glossary.higurashi
 						: undefined;
 			if (!glos) continue;
@@ -384,7 +388,7 @@ function updateDecorations() {
 
 					let hoverMessage = new vscode.MarkdownString(
 						`<span style="color:#ffcc00;">${tr}</span> — <a href="https://witch-love.com/${
-							file_type == 'umineko'
+							fileType == 'umineko'
 								? 'umineko/contributing/rules'
 								: 'higurashi/contributing/rules'
 						}">Tüm Liste</a>`,
@@ -396,33 +400,33 @@ function updateDecorations() {
 						hoverMessage,
 					};
 
-					glossary_decors.push(decor);
+					glossaryDecors.push(decor);
 				}
 			}
 		}
 	}
 
-	for (let [char_id, _] of decorationArrsText) {
-		let char = characters.get(char_id)!;
+	for (let [charId, _] of decorationArrsText) {
+		let char = characters.get(charId)!;
 		let text = char.decoration.text;
 		let icon = char.decoration.icon;
 
 		if (text)
-			activeEditor.setDecorations(text, decorationArrsText.get(char_id)!);
+			activeEditor.setDecorations(text, decorationArrsText.get(charId)!);
 		if (icon)
-			activeEditor.setDecorations(icon, decorationArrsIcon.get(char_id)!);
+			activeEditor.setDecorations(icon, decorationArrsIcon.get(charId)!);
 	}
 
 	let decor = global.glossaryDecor.get(activeEditor.document.fileName);
 	if (decor) decor.dispose();
-	let glos_decor = vscode.window.createTextEditorDecorationType({
+	let glosDecor = vscode.window.createTextEditorDecorationType({
 		backgroundColor: '#ffcc00',
 		overviewRulerColor: '#ffcc00',
 		color: '#1f1f1f',
 		fontWeight: 'bold',
 	});
-	global.glossaryDecor.set(activeEditor.document.fileName, glos_decor);
-	activeEditor.setDecorations(glos_decor, glossary_decors);
+	global.glossaryDecor.set(activeEditor.document.fileName, glosDecor);
+	activeEditor.setDecorations(glosDecor, glossaryDecors);
 
 	statusbarItem.show();
 	translatebarItem.show();
@@ -446,18 +450,18 @@ async function updateWitchLoveWorkspace() {
 	if (!folder) return;
 
 	// const script_path = folder.uri.fsPath + '/script.php';
-	const ws_settings_path = folder.uri.fsPath + '/Witch Love.code-workspace';
-	const readme_redaction = folder.uri.fsPath + '/README_redaksiyon.md';
-	const readme_translation = folder.uri.fsPath + '/README_çeviri.md';
+	const wsSettingsPath = folder.uri.fsPath + '/Witch Love.code-workspace';
+	const readmeRedaction = folder.uri.fsPath + '/README_redaksiyon.md';
+	const readmeTranslation = folder.uri.fsPath + '/README_çeviri.md';
 
-	let notification = DisposableNotification(
+	let notification = disposableNotification(
 		'Updating Witch Love Settings...',
 	);
 
-	let new_settings = await fetchFileJson(
+	let newSettings = await fetchFileJson(
 		'https://gist.githubusercontent.com/Singulariity/55749720793d156306dafdc2e597a107/raw/settings.json',
 	);
-	if (!new_settings) {
+	if (!newSettings) {
 		notification.close();
 		let selection = await vscode.window.showErrorMessage(
 			'Updating is failed. Please check your internet connection.',
@@ -469,29 +473,25 @@ async function updateWitchLoveWorkspace() {
 		}
 		return;
 	}
-	let current_set = fs.readFileSync(ws_settings_path, 'utf-8');
-	let current_settings = JSON.parse(current_set);
+	let currentSet = fs.readFileSync(wsSettingsPath, 'utf-8');
+	let currentSettings = JSON.parse(currentSet);
 
-	for (let [key, _] of Object.entries(new_settings)) {
-		current_settings['settings'][key] = new_settings[key];
+	for (let [key, _] of Object.entries(newSettings)) {
+		currentSettings['settings'][key] = newSettings[key];
 	}
 
-	fs.writeFileSync(
-		ws_settings_path,
-		JSON.stringify(current_settings, null, 4),
-		{
-			encoding: 'utf-8',
-		},
-	);
+	fs.writeFileSync(wsSettingsPath, JSON.stringify(currentSettings, null, 4), {
+		encoding: 'utf-8',
+	});
 	notification.progress?.report({
 		message: 'Witch Love Settings updated!\nUpdating README files...',
 		increment: 50,
 	});
 
-	let new_readme_redaction = await fetchFileText(
+	let newReadmeRedaction = await fetchFileText(
 		'https://gist.githubusercontent.com/Singulariity/817d9819133be88d898be6bfc78e084f/raw/README_redaksiyon.md',
 	);
-	if (!new_readme_redaction) {
+	if (!newReadmeRedaction) {
 		notification.close();
 		let selection = await vscode.window.showErrorMessage(
 			'Updating is failed. Please check your internet connection.',
@@ -504,14 +504,14 @@ async function updateWitchLoveWorkspace() {
 		return;
 	}
 
-	fs.writeFileSync(readme_redaction, new_readme_redaction, {
+	fs.writeFileSync(readmeRedaction, newReadmeRedaction, {
 		encoding: 'utf-8',
 	});
 
-	let new_readme_translation = await fetchFileText(
+	let newReadmeTranslation = await fetchFileText(
 		'https://gist.githubusercontent.com/Singulariity/8308ebb12c2de349e1f9b0ea1ad18601/raw/README_çeviri.md',
 	);
-	if (!new_readme_translation) {
+	if (!newReadmeTranslation) {
 		notification.close();
 		let selection = await vscode.window.showErrorMessage(
 			'Updating is failed. Please check your internet connection.',
@@ -524,13 +524,13 @@ async function updateWitchLoveWorkspace() {
 		return;
 	}
 
-	fs.writeFileSync(readme_translation, new_readme_translation, {
+	fs.writeFileSync(readmeTranslation, newReadmeTranslation, {
 		encoding: 'utf-8',
 	});
 
 	notification.close();
 
-	notification = DisposableNotification(
+	notification = disposableNotification(
 		'Witch Love Workspace updated successfully!',
 	);
 	notification.progress?.report({ increment: 100 });

@@ -1,16 +1,16 @@
 {
 	"name": "witch-love-vscode",
 	"displayName": "Witch Love",
-	"publisher": "Witch Love",
+	"publisher": "WitchLove",
 	"icon": "img/icon.png",
 	"description": "An extension developed by Witch Love to assist the translating process.",
 	"repository": {
 		"url": "https://github.com/Witch-Love/witchlove-vscode"
 	},
 	"license": "MIT",
-	"version": "0.5.8",
+	"version": "0.6.0",
 	"engines": {
-		"vscode": "^1.81.0"
+		"vscode": "^1.109.5"
 	},
 	"categories": [
 		"Other"
@@ -166,12 +166,12 @@
 		"@types/node": "16.x",
 		"@types/node-fetch": "^2.6.4",
 		"@types/random-seed": "^0.3.3",
-		"@types/vscode": "^1.81.0",
+		"@types/vscode": "^1.109.0",
 		"@types/copy-paste": "^1.1.33",
 		"@typescript-eslint/eslint-plugin": "^6.4.1",
 		"@typescript-eslint/parser": "^6.4.1",
 		"@vscode/test-electron": "^2.3.4",
-		"@vscode/vsce": "^2.15.0",
+		"@vscode/vsce": "^3.7.1",
 		"esbuild": "^0.19.2",
 		"eslint": "^8.47.0",
 		"glob": "^10.3.3",

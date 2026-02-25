@@ -1,8 +1,8 @@
-import { ExtensionContext, Range, commands, window } from 'vscode';
-import { Translator } from 'deepl-node';
 import ncp from 'copy-paste';
+import { Translator } from 'deepl-node';
+import { ExtensionContext, Range, commands, window } from 'vscode';
 
-import { DisposableNotification } from '../utils';
+import { disposableNotification } from '../utils';
 
 export default function initTranslate(context: ExtensionContext) {
 	let command = commands.registerCommand('witchLove.translate', Command);
@@ -17,12 +17,12 @@ async function Command() {
 		let action = await window.showWarningMessage(
 			'DeepL API key required for this action.',
 			'Open Settings',
-			'Close'
+			'Close',
 		);
 		if (action == 'Open Settings') {
 			commands.executeCommand(
 				'workbench.action.openSettings',
-				'witchLove.deepl'
+				'witchLove.deepl',
 			);
 		}
 		return;
@@ -39,7 +39,7 @@ async function Command() {
 			item.start.line,
 			item.start.character,
 			item.end.line,
-			item.end.character
+			item.end.character,
 		);
 
 		let select = activeEditor.document.getText(range);
@@ -54,11 +54,11 @@ async function Command() {
 		texts.push(select);
 	}
 
-	let final_text = texts.join(' ');
+	let finalText = texts.join(' ');
 
-	if (final_text.length == 0) return;
+	if (finalText.length == 0) return;
 
-	let notification = DisposableNotification('Translating...');
+	let notification = disposableNotification('Translating...');
 
 	let translator = new Translator(config.deepl_key);
 
@@ -70,17 +70,17 @@ async function Command() {
 		}
 
 		const result = await translator.translateText(
-			final_text,
+			finalText,
 			'en',
 			'tr',
-			{}
+			{},
 		);
 
 		ncp.copy(result.text);
 		notification.close();
 
 		if (config.deepl_notification) {
-			window.showInformationMessage(result.text, "Close");
+			window.showInformationMessage(result.text, 'Close');
 		}
 	} catch (error) {
 		notification.close();
@@ -91,12 +91,12 @@ async function Command() {
 			let action = await window.showErrorMessage(
 				'DeepL API key is not correct, please check your key.',
 				'Open Settings',
-				'Close'
+				'Close',
 			);
 			if (action == 'Open Settings') {
 				commands.executeCommand(
 					'workbench.action.openSettings',
-					'witchLove.deepl'
+					'witchLove.deepl',
 				);
 			}
 		} else {

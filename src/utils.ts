@@ -1,10 +1,10 @@
-import { ProgressLocation, window, workspace } from 'vscode';
+import { ColorActionName } from '@jimp/plugin-color';
 import { exec } from 'child_process';
-import * as random from 'random-seed';
 import * as fs from 'fs';
 import * as Jimp from 'jimp';
 import fetch from 'node-fetch';
-import { ColorActionName } from '@jimp/plugin-color';
+import * as random from 'random-seed';
+import { ProgressLocation, window, workspace } from 'vscode';
 
 import { Notification } from './types';
 
@@ -83,7 +83,7 @@ export function generateDecoration(key: string) {
  * @param text Notification content
  * @returns The notification object
  */
-export function DisposableNotification(text: string): Notification {
+export function disposableNotification(text: string): Notification {
 	let closeNotification = () => {};
 	let token_ = undefined;
 	let progress_ = undefined;
@@ -100,7 +100,7 @@ export function DisposableNotification(text: string): Notification {
 				token_ = token;
 				progress_ = progress;
 			});
-		}
+		},
 	);
 	return {
 		close: closeNotification,
@@ -127,9 +127,9 @@ export function extensionFilePath(path: string) {
  * @returns `true` if the file exists, `false` otherwise.
  */
 export function isFileExists(path: string): boolean {
-	let absolute_path = extensionFilePath(path);
+	let absolutePath = extensionFilePath(path);
 
-	return fs.existsSync(absolute_path);
+	return fs.existsSync(absolutePath);
 }
 
 export async function fetchFileText(url: string) {
@@ -141,7 +141,7 @@ export async function fetchFileText(url: string) {
 }
 
 export async function fetchFileJson(
-	url: string
+	url: string,
 ): Promise<{ [key: string]: any } | undefined> {
 	let res = await fetch(url);
 

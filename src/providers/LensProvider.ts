@@ -1,9 +1,9 @@
-import * as vscode from 'vscode';
 import { readFileSync } from 'fs';
 import path from 'path';
+import * as vscode from 'vscode';
 
-import { extensionFilePath } from '../utils';
 import { LensData } from '../types';
+import { extensionFilePath } from '../utils';
 
 export default class LensProvider implements vscode.CodeLensProvider {
 	private codeLenses: vscode.CodeLens[] = [];
@@ -16,12 +16,12 @@ export default class LensProvider implements vscode.CodeLensProvider {
 
 	public provideCodeLenses(
 		document: vscode.TextDocument,
-		token: vscode.CancellationToken
+		token: vscode.CancellationToken,
 	): vscode.CodeLens[] | Thenable<vscode.CodeLens[]> {
 		this.codeLenses = [];
 
 		let data: LensData = JSON.parse(
-			readFileSync(extensionFilePath('lens_data.json'), 'utf-8')
+			readFileSync(extensionFilePath('lens_data.json'), 'utf-8'),
 		);
 
 		let filename = path.basename(document.fileName, '.txt');
@@ -29,12 +29,12 @@ export default class LensProvider implements vscode.CodeLensProvider {
 
 		if (obj) {
 			for (let item of obj) {
-				let range_start = new vscode.Range(
+				let rangeStart = new vscode.Range(
 					new vscode.Position(item.start - 1, 0),
-					new vscode.Position(item.start - 1, 0)
+					new vscode.Position(item.start - 1, 0),
 				);
 
-				let start = new vscode.CodeLens(range_start);
+				let start = new vscode.CodeLens(rangeStart);
 				start.command = {
 					title: `▼ ${item.title} ▼`,
 					tooltip: item.tooltip,
@@ -44,12 +44,12 @@ export default class LensProvider implements vscode.CodeLensProvider {
 				this.codeLenses.push(start);
 
 				if (item.end) {
-					let range_end = new vscode.Range(
+					let rangeEnd = new vscode.Range(
 						new vscode.Position(item.end, 0),
-						new vscode.Position(item.end, 0)
+						new vscode.Position(item.end, 0),
 					);
 
-					let end = new vscode.CodeLens(range_end);
+					let end = new vscode.CodeLens(rangeEnd);
 
 					end.command = {
 						title: `▲ ${item.title} ▲`,
