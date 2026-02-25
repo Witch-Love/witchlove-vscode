@@ -167,7 +167,7 @@ export function getWorkspaceFolder() {
 }
 
 export async function checkFFmpegInstallation(): Promise<boolean> {
-	return new Promise((resolve, reject) => {
+	return new Promise((resolve, _) => {
 		exec('ffmpeg -version', (error) => {
 			if (error) {
 				return resolve(false);
@@ -175,4 +175,15 @@ export async function checkFFmpegInstallation(): Promise<boolean> {
 			return resolve(true);
 		});
 	});
+}
+
+export async function checkOnlineTokenValidity(): Promise<boolean> {
+	const res = await fetch('https://cdn.witch-love.com/p/tokenvalidity', {
+		headers: {
+			// eslint-disable-next-line @typescript-eslint/naming-convention
+			Authorization: `Bearer ${config.onlineToken}`,
+		},
+	});
+
+	return res.status != 401;
 }
