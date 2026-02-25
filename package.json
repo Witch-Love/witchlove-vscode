@@ -8,7 +8,7 @@
 		"url": "https://github.com/Witch-Love/witchlove-vscode"
 	},
 	"license": "MIT",
-	"version": "0.6.0",
+	"version": "0.6.1",
 	"engines": {
 		"vscode": "^1.109.5"
 	},
@@ -97,22 +97,14 @@
 			{
 				"title": "Line Listening",
 				"properties": {
-					"witchLove.lineListening.higurashiDirectories": {
-						"type": "array",
-						"items": {
-							"type": "string"
-						},
-						"default": [],
-						"markdownDescription": "Directories of __*07th-modded*__ Higurashi Hou folders. **Required for the line listening**   \nPress `Alt+Q` to listen current line.   \n\nExample: `E:/SteamLibrary/steamapps/common/Higurashi When They Cry`"
-					},
-					"witchLove.lineListening.uminekoDirectory": {
+					"witchLove.lineListening.voiceFilesDirectory": {
 						"type": "string",
-						"markdownDescription": "Directory of Umineko Project. **Required for the line listening**   \nPress `Alt+Q` to listen current line.   \n\nExample: `E:\\Files\\UminekoProject`",
-						"default": ""
+						"default": "",
+						"markdownDescription": "Path of the voice files folder. **Required for listening (locally)**   \nPress `Alt+Q` to listen current line.   \n\nExample: `C:/voices`"
 					},
 					"witchLove.lineListening.onlineToken": {
 						"type": "string",
-						"markdownDescription": "Access token for online listening (Only for Umineko). **Required for the online listening**   \nPress `Alt+Q` to listen current line.",
+						"markdownDescription": "Access token for listening lines. **Required for listening (without downloading)**   \nPress `Alt+Q` to listen current line.",
 						"default": ""
 					},
 					"witchLove.lineListening.volume": {

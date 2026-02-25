@@ -5,15 +5,15 @@ import { ExtensionContext, Range, commands, window } from 'vscode';
 import { disposableNotification } from '../utils';
 
 export default function initTranslate(context: ExtensionContext) {
-	let command = commands.registerCommand('witchLove.translate', Command);
+	let cmd = commands.registerCommand('witchLove.translate', command);
 
-	context.subscriptions.push(command);
+	context.subscriptions.push(cmd);
 }
 
-async function Command() {
+async function command() {
 	if (!activeEditor) return;
 
-	if (config.deepl_key.length == 0) {
+	if (config.deeplKey.length == 0) {
 		let action = await window.showWarningMessage(
 			'DeepL API key required for this action.',
 			'Open Settings',
@@ -60,7 +60,7 @@ async function Command() {
 
 	let notification = disposableNotification('Translating...');
 
-	let translator = new Translator(config.deepl_key);
+	let translator = new Translator(config.deeplKey);
 
 	try {
 		const usage = await translator.getUsage();
@@ -79,7 +79,7 @@ async function Command() {
 		ncp.copy(result.text);
 		notification.close();
 
-		if (config.deepl_notification) {
+		if (config.deeplNotification) {
 			window.showInformationMessage(result.text, 'Close');
 		}
 	} catch (error) {

@@ -1,7 +1,7 @@
 import { Progress, TextEditorDecorationType } from 'vscode';
 
 export type Character = {
-	display_name: string;
+	displayName: string;
 	color: string;
 	decoration: {
 		text?: TextEditorDecorationType;
@@ -10,18 +10,17 @@ export type Character = {
 };
 
 export type Config = {
-	online_token: string;
-	listen_volume: number;
-	hover_width: number;
-	line_color_opacity: number;
+	onlineToken: string;
+	listenVolume: number;
+	hoverWidth: number;
+	lineColorOpacity: number;
 	paths: {
-		umineko: string;
-		higurashi: string[];
+		voiceFiles: string;
 		characters: string;
 		extension: string;
 	};
-	deepl_key: string;
-	deepl_notification: boolean;
+	deeplKey: string;
+	deeplNotification: boolean;
 };
 
 export type Notification = {

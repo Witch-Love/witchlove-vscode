@@ -70,7 +70,7 @@ export function generateDecoration(key: string) {
 		isWholeLine: true,
 		backgroundColor:
 			characters.get(key)?.color +
-			config.line_color_opacity.toString(16).padStart(2, '0'),
+			config.lineColorOpacity.toString(16).padStart(2, '0'),
 	});
 	return {
 		text: decorationText,
@@ -166,7 +166,7 @@ export function getWorkspaceFolder() {
 	return found;
 }
 
-export async function isFFmpegInstalled(): Promise<boolean> {
+export async function checkFFmpegInstallation(): Promise<boolean> {
 	return new Promise((resolve, reject) => {
 		exec('ffmpeg -version', (error) => {
 			if (error) {

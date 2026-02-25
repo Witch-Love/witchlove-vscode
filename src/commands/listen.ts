@@ -5,29 +5,22 @@ import { ExtensionContext, commands, window } from 'vscode';
 import { exec } from 'child_process';
 import { updateVoicelines } from '../extension';
 import {
+	checkFFmpegInstallation,
 	extensionFilePath,
-	getWorkspaceFolder,
-	isFFmpegInstalled,
 	isFileExists,
 } from '../utils';
 
-let ffplayLoc: string | undefined;
+let isFFmpegInstalled = false;
 
 export default async function initListen(context: ExtensionContext) {
-	const command = commands.registerCommand('witchLove.listen', Command);
+	const cmd = commands.registerCommand('witchLove.listen', command);
 
-	const isInstalled = await isFFmpegInstalled();
-	if (!isInstalled) {
-		const folder = getWorkspaceFolder();
-		if (!folder) return;
+	isFFmpegInstalled = await checkFFmpegInstallation();
 
-		ffplayLoc = folder.uri.fsPath + '/extra/ffmpeg';
-	}
-
-	context.subscriptions.push(command);
+	context.subscriptions.push(cmd);
 }
 
-async function Command() {
+async function command() {
 	if (!activeEditor) return;
 
 	let filename = path.basename(activeEditor.document.fileName, '.txt');
@@ -52,44 +45,32 @@ async function Command() {
 	// COMMAND PART BELOW
 	// COMMAND PART BELOW
 
-	const listenOnline = config.online_token.length > 0;
-	const EXTRA_ARGS = listenOnline
-		? ['-headers', `"Authorization: Bearer ${config.online_token}"`]
-		: [];
-	let basePath = '';
-
-	let voiceFilePath;
-
-	if (filename.includes('umi')) {
-		basePath = listenOnline
-			? 'https://cdn.witch-love.com/p/umineko'
-			: config.paths.umineko;
-
-		voiceFilePath = `${basePath}/sound/voice/${voicelines[line][0]}/${voicelines[line][1]}.ogg`;
-	} else {
-		outer: for (let i = 0; i < config.paths.higurashi.length; i++) {
-			for (let j = 1; j <= 10; j++) {
-				var chapterDataDir = `HigurashiEp${j
-					.toString()
-					.padStart(2, '0')}`;
-
-				switch (process.platform) {
-					case 'darwin':
-						chapterDataDir += '.app/Contents/Resources/Data';
-						break;
-					default:
-						chapterDataDir += '_Data';
-						break;
-				}
-
-				let check = `${config.paths.higurashi[i]}/${chapterDataDir}/StreamingAssets/voice/${voicelines[line][1]}.ogg`;
-				if (fs.existsSync(check)) {
-					voiceFilePath = check;
-					break outer;
-				}
+	if (!isFFmpegInstalled) {
+		let selection = await window.showWarningMessage(
+			'FFmpeg is not installed. In order to listen lines, you need to install ffmpeg.\nPlease restart VS Code after the installation.',
+			'Check Again',
+			'Close',
+		);
+		if (selection === 'Check Again') {
+			let status = await checkFFmpegInstallation();
+			if (status) {
+				window.showInformationMessage('Ffmpeg installed!');
 			}
+			commands.executeCommand('witchLove.listen');
 		}
+		return;
 	}
+
+	const listenOnline = config.onlineToken.length > 0;
+
+	const isUmi = filename.includes('umi');
+	const basePath = listenOnline
+		? 'https://cdn.witch-love.com/p'
+		: config.paths.voiceFiles;
+
+	const voiceFilePath = isUmi
+		? `${basePath}/umineko/sound/voice/${voicelines[line][0]}/${voicelines[line][1]}.ogg`
+		: `${basePath}/higurashi/sound/voice/${voicelines[line][1]}.ogg`;
 
 	if (!voiceFilePath || (!listenOnline && !fs.existsSync(voiceFilePath))) {
 		window
@@ -109,13 +90,18 @@ async function Command() {
 		return;
 	}
 
+	const EXTRA_ARGS = listenOnline
+		? ['-headers', `"Authorization: Bearer ${config.onlineToken}"`]
+		: [];
+
 	if (voicelines[line][2] && voicelines[line][2] == 'red') {
-		playAudio(`${basePath}/sound/se/umise_059.ogg`, [
+		playAudio(`${basePath}/umineko/sound/se/umise_059.ogg`, [
 			...EXTRA_ARGS,
 			'-t',
 			'00:02',
 		]);
 	}
+
 	playAudio(voiceFilePath, EXTRA_ARGS);
 }
 
@@ -127,19 +113,22 @@ function playAudio(filePath: string, extraArgs: string[] = []) {
 		'-nostats',
 		'-hide_banner',
 		'-volume',
-		String(config.listen_volume),
+		String(config.listenVolume),
 		...extraArgs,
 		`"${filePath}"`,
 	];
 
-	const ffplayPath = ffplayLoc ? path.join(ffplayLoc, 'ffplay') : 'ffplay';
-
-	exec([ffplayPath, ...baseArgs].join(' '), (error, _, stderr) => {
+	exec(['ffplay', ...baseArgs].join(' '), (error, _, stderr) => {
 		if (error) {
 			window.showErrorMessage('An error occurred: ' + error);
 		}
-		/* if (stderr) {
-			window.showErrorMessage('FFPLAY error occurred: ' + stderr);
-		} */
+		if (stderr) {
+			const warns = stderr.split('\n');
+			for (const warn of warns) {
+				if (warn.includes('CRLF') || warn.length < 5) continue;
+
+				window.showErrorMessage('An error occurred: ' + warn);
+			}
+		}
 	});
 }

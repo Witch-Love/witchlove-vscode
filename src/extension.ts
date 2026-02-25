@@ -210,20 +210,17 @@ function loadSettings(context: vscode.ExtensionContext) {
 
 	// UPDATE SETTINGS
 	global.config = {
-		hover_width: conf.get<number>('hoverWidth')!,
-		line_color_opacity: conf.get<number>('lineColorOpacity')!,
+		hoverWidth: conf.get<number>('hoverWidth')!,
+		lineColorOpacity: conf.get<number>('lineColorOpacity')!,
 		paths: {
 			characters: context.asAbsolutePath('characters.json'),
-			higurashi: conf.get<string[]>(
-				'lineListening.higurashiDirectories',
-			)!,
-			umineko: conf.get<string>('lineListening.uminekoDirectory')!,
+			voiceFiles: conf.get<string>('lineListening.voiceFilesDirectory')!,
 			extension: context.extensionPath,
 		},
-		online_token: conf.get<string>('lineListening.onlineToken')!,
-		listen_volume: conf.get<number>('lineListening.volume')!,
-		deepl_key: conf.get<string>('deepl.deeplKey')!,
-		deepl_notification:
+		onlineToken: conf.get<string>('lineListening.onlineToken')!,
+		listenVolume: conf.get<number>('lineListening.volume')!,
+		deeplKey: conf.get<string>('deepl.deeplKey')!,
+		deeplNotification:
 			conf.get<string>('deepl.translateNotification')! == 'Yes',
 	};
 }
@@ -240,7 +237,7 @@ function initCharacters() {
 			color = getSeededColor(key);
 		}
 		characters.set(key, {
-			display_name: displayName,
+			displayName: displayName,
 			color,
 			decoration: {},
 		});
@@ -330,7 +327,7 @@ function updateDecorations() {
 		if (match !== null && match.index !== undefined) {
 			let defaultRange = new vscode.Range(
 				new vscode.Position(i, 0),
-				new vscode.Position(i, config.hover_width),
+				new vscode.Position(i, config.hoverWidth),
 			);
 
 			let charId = data[i + 1];
@@ -349,7 +346,7 @@ function updateDecorations() {
 
 			let hoverMessage = new vscode.MarkdownString(
 				`<span style="color:${characters.get(charId)?.color};"><b> ${
-					characters.get(charId)?.display_name
+					characters.get(charId)?.displayName
 				}</b></span>`,
 			);
 			hoverMessage.supportHtml = true;
