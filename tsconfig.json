@@ -3,7 +3,7 @@
 		"module": "commonjs",
 		"target": "ES2022",
 		"outDir": "out",
-		"lib": ["ES2023"],
+		"lib": ["ES2023", "DOM"],
 		"sourceMap": true,
 		"rootDir": "src",
 		"resolveJsonModule": true,

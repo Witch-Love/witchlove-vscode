@@ -60,7 +60,12 @@ async function command() {
 
 	let notification = disposableNotification('Translating...');
 
-	let translator = new Translator(config.deeplKey);
+	const translator = new Translator(config.deeplKey);
+
+	//TODO later
+	const glossaryInfo = (await translator.listGlossaries()).find(
+		(g) => g.name == 'umineko',
+	);
 
 	try {
 		const usage = await translator.getUsage();
@@ -69,12 +74,10 @@ async function command() {
 			throw new Error('DeepL usage limit reached!');
 		}
 
-		const result = await translator.translateText(
-			finalText,
-			'en',
-			'tr',
-			{},
-		);
+		const result = await translator.translateText(finalText, 'en', 'tr', {
+			modelType: 'quality_optimized',
+			glossary: glossaryInfo,
+		});
 
 		ncp.copy(result.text);
 		notification.close();
