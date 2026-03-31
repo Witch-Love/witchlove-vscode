@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import path from 'path';
 import * as vscode from 'vscode';
 
+import { GlossaryEntries, GlossaryInfo, Translator } from 'deepl-node';
 import initListen from './commands/listen';
 import initTranslate from './commands/translate';
 import LensProvider from './providers/LensProvider';
@@ -195,10 +196,51 @@ function initListeners(context: vscode.ExtensionContext) {
 		null,
 		context.subscriptions,
 	);
-	vscode.workspace.onDidChangeConfiguration(() => {
+	vscode.workspace.onDidChangeConfiguration(async () => {
 		loadSettings(context);
 		loadCharacterDecorations();
 	});
+}
+
+async function updateDeeplGlossary(): Promise<GlossaryInfo | undefined> {
+	if (config.deeplKey.length == 0) return;
+
+	try {
+		const translator = new Translator(config.deeplKey);
+
+		let glossaryInfo = (await translator.listGlossaries()).find(
+			(g) => g.name == 'umineko',
+		);
+
+		if (glossaryInfo) {
+			await translator.deleteGlossary(glossaryInfo);
+		}
+
+		const finalGlossary: { [key: string]: string } = {};
+		for (let [key, value] of Object.entries(glossary.umineko)) {
+			if (value.toLowerCase().includes('özel durum')) continue;
+
+			let newValue = value
+				.replace(/\s*\*?`?\(.*?\)`?\*?/g, '')
+				.split('/')[0]
+				.trim();
+			finalGlossary[key] = newValue;
+		}
+
+		const entries = new GlossaryEntries({
+			entries: finalGlossary,
+		});
+		glossaryInfo = await translator.createGlossary(
+			'umineko',
+			'en',
+			'tr',
+			entries,
+		);
+		return glossaryInfo;
+	} catch (error) {
+		console.error(error);
+		return;
+	}
 }
 
 /**
@@ -222,7 +264,12 @@ function loadSettings(context: vscode.ExtensionContext) {
 		deeplKey: conf.get<string>('deepl.deeplKey')!,
 		deeplNotification:
 			conf.get<string>('deepl.translateNotification')! == 'Yes',
+		deeplGlossary: undefined,
 	};
+
+	updateDeeplGlossary().then(
+		(glossaryInfo) => (config.deeplGlossary = glossaryInfo),
+	);
 }
 
 function initCharacters() {

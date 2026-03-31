@@ -1,3 +1,4 @@
+import { GlossaryInfo } from 'deepl-node';
 import { Progress, TextEditorDecorationType } from 'vscode';
 
 export type Character = {
@@ -21,6 +22,7 @@ export type Config = {
 	};
 	deeplKey: string;
 	deeplNotification: boolean;
+	deeplGlossary?: GlossaryInfo;
 };
 
 export type Notification = {

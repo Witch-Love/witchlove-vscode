@@ -1,5 +1,5 @@
 import ncp from 'copy-paste';
-import { GlossaryEntries, Translator } from 'deepl-node';
+import { Translator } from 'deepl-node';
 import { ExtensionContext, Range, commands, window } from 'vscode';
 
 import { disposableNotification } from '../utils';
@@ -62,17 +62,6 @@ async function command() {
 
 	const translator = new Translator(config.deeplKey);
 
-	//TODO move to extension.ts to update it everytime
-	const glossaryInfo = (await translator.listGlossaries()).find(
-		(g) => g.name == 'umineko',
-	);
-	if (!glossaryInfo) {
-		const entries = new GlossaryEntries({
-			entries: glossary.umineko,
-		});
-		await translator.createGlossary('umineko', 'en', 'tr', entries);
-	}
-
 	try {
 		const usage = await translator.getUsage();
 
@@ -82,7 +71,7 @@ async function command() {
 
 		const result = await translator.translateText(finalText, 'en', 'tr', {
 			modelType: 'quality_optimized',
-			glossary: glossaryInfo,
+			glossary: config.deeplGlossary,
 		});
 
 		ncp.copy(result.text);
