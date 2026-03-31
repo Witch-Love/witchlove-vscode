@@ -6,6 +6,7 @@ import * as vscode from 'vscode';
 import { GlossaryEntries, GlossaryInfo, Translator } from 'deepl-node';
 import initListen from './commands/listen';
 import initTranslate from './commands/translate';
+import initTranslateFile from './commands/translateFile';
 import LensProvider from './providers/LensProvider';
 import {
 	disposableNotification,
@@ -52,6 +53,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	// COMMAND INITS
 	await initListen(context);
 	initTranslate(context);
+	initTranslateFile(context);
 
 	// LISTENER INITS
 	initListeners(context);
@@ -59,6 +61,11 @@ export async function activate(context: vscode.ExtensionContext) {
 	// GLOSSARY INITS
 	await initGlossary();
 	await initLens();
+
+	// DEEPL GLOSSARY INIT
+	updateDeeplGlossary().then(
+		(glossaryInfo) => (config.deeplGlossary = glossaryInfo),
+	);
 
 	// LENS INIT
 	vscode.languages.registerCodeLensProvider('*', new LensProvider());
@@ -208,9 +215,9 @@ async function updateDeeplGlossary(): Promise<GlossaryInfo | undefined> {
 	try {
 		const translator = new Translator(config.deeplKey);
 
-		let glossaryInfo = (await translator.listGlossaries()).find(
-			(g) => g.name == 'umineko',
-		);
+		const glossaryList = await translator.listGlossaries();
+
+		let glossaryInfo = glossaryList.find((g) => g.name == 'umineko');
 
 		if (glossaryInfo) {
 			await translator.deleteGlossary(glossaryInfo);
@@ -266,10 +273,6 @@ function loadSettings(context: vscode.ExtensionContext) {
 			conf.get<string>('deepl.translateNotification')! == 'Yes',
 		deeplGlossary: undefined,
 	};
-
-	updateDeeplGlossary().then(
-		(glossaryInfo) => (config.deeplGlossary = glossaryInfo),
-	);
 }
 
 function initCharacters() {

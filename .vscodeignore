@@ -13,3 +13,4 @@ vsc-extension-quickstart.md
 colors/**
 !colors/Unknown.png
 data/dataextract.php
+lens_data.json

@@ -64,9 +64,14 @@ async function command() {
 
 	try {
 		const usage = await translator.getUsage();
+		const usageChar = usage.character;
 
-		if (usage.anyLimitReached()) {
-			throw new Error('DeepL usage limit reached!');
+		if (usageChar) {
+			console.log(`DeepL Usage: ${usageChar.count}/${usageChar.limit}`);
+		}
+
+		if (usageChar?.limitReached()) {
+			throw new Error('DeepL character usage translation limit reached!');
 		}
 
 		const result = await translator.translateText(finalText, 'en', 'tr', {
