@@ -102,7 +102,7 @@ async function versionChecker(currentVersion?: string) {
 }
 
 async function initGlossary() {
-	const exp = new RegExp(/\\* (.{1,40}) `->` (.*)$/, 'gim');
+	const exp = new RegExp(/^\*\s(.*?)\s`->`\s(.*)$/, 'gim');
 
 	//UMINEKO
 	let resUmineko = await fetchFileText(

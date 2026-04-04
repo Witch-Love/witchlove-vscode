@@ -8,7 +8,7 @@
 		"url": "https://github.com/Witch-Love/witchlove-vscode"
 	},
 	"license": "MIT",
-	"version": "0.6.6",
+	"version": "0.6.7",
 	"engines": {
 		"vscode": "^1.109.5"
 	},
