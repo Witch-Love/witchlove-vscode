@@ -128,6 +128,7 @@ async function command() {
 	}
 
 	playAudio(voiceFilePath, EXTRA_ARGS);
+	console.log('Played audio: ', voiceFilePath);
 }
 
 function playAudio(filePath: string, extraArgs: string[] = []) {
