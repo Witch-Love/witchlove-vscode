@@ -8,6 +8,7 @@ import {
 	checkFFmpegInstallation,
 	checkOnlineTokenValidity,
 	extensionFilePath,
+	getTLFileType,
 	isFileExists,
 } from '../utils';
 
@@ -26,7 +27,9 @@ export default async function initListen(context: ExtensionContext) {
 async function command() {
 	if (!activeEditor) return;
 
-	let filename = path.basename(activeEditor.document.fileName, '.txt');
+	const filename = path.basename(activeEditor.document.fileName, '.txt');
+	const fileType = getTLFileType(activeEditor.document.fileName);
+	if (!fileType) return;
 	let datapath = `data/data/${filename}.json`;
 	if (!isFileExists(datapath)) {
 		let dirs = path.dirname(activeEditor.document.fileName).split(/\\|\//);
@@ -88,14 +91,17 @@ async function command() {
 		return;
 	}
 
-	const isUmi = filename.includes('umi');
 	const basePath = listenOnline
 		? 'https://cdn.witch-love.com/p'
 		: config.paths.voiceFiles;
 
-	const voiceFilePath = isUmi
-		? `${basePath}/umineko/sound/voice/${voicelines[line][0]}/${voicelines[line][1]}.ogg`
-		: `${basePath}/higurashi/sound/voice/${voicelines[line][1]}.ogg`;
+	let voiceFilePath = `${basePath}/${fileType}/sound/voice/`;
+
+	if (fileType == 'umineko') {
+		voiceFilePath += `${voicelines[line][0]}/${voicelines[line][1]}.ogg`;
+	} else if (fileType == 'higurashi') {
+		voiceFilePath += `${voicelines[line][1]}.ogg`;
+	}
 
 	if (!listenOnline && !fs.existsSync(voiceFilePath)) {
 		window

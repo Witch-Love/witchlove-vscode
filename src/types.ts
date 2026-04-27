@@ -44,3 +44,5 @@ type LensItem = {
 	start: number;
 	end?: number;
 };
+
+export type TLFileType = 'higurashi' | 'umineko' | undefined;

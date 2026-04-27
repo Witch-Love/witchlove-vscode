@@ -6,7 +6,7 @@ import fetch from 'node-fetch';
 import * as random from 'random-seed';
 import { ProgressLocation, window, workspace } from 'vscode';
 
-import { Notification } from './types';
+import { Notification, TLFileType } from './types';
 
 export function getSeededColor(key: string) {
 	return (
@@ -186,4 +186,20 @@ export async function checkOnlineTokenValidity(): Promise<boolean> {
 	});
 
 	return res.status != 401;
+}
+
+export function getTLFileType(fileName: string): TLFileType {
+	// umineko
+	const umiRegex = /umi.*\.txt/gi;
+	if (umiRegex.test(fileName)) {
+		return 'umineko';
+	}
+
+	// higurashi
+	const higuRegex =
+		/(onik|wata|tata|hima|_meak|_tsum|_mina|_mats|_kakera|omake_|staffroom).*\.txt/gi;
+	if (higuRegex.test(fileName)) {
+		return 'higurashi';
+	}
+	return undefined;
 }

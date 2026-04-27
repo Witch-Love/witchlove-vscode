@@ -16,6 +16,7 @@ import {
 	generateColorImage,
 	generateDecoration,
 	getSeededColor,
+	getTLFileType,
 	getWorkspaceFolder,
 	isFileExists,
 } from './utils';
@@ -337,7 +338,9 @@ function updateDecorations() {
 		return;
 	}
 
-	activeEditor.document.fileName;
+	const fileType = getTLFileType(activeEditor.document.fileName);
+
+	if (!fileType) return;
 
 	let fileName = path.basename(activeEditor.document.fileName, '.txt');
 	let fileDataPath = `data/data/${fileName}.json`;
@@ -358,13 +361,6 @@ function updateDecorations() {
 	for (let [key, _] of characters) {
 		decorationArrsText.set(key, []);
 		decorationArrsIcon.set(key, []);
-	}
-
-	let fileType: 'higurashi' | 'umineko' | undefined = undefined;
-	if (/(ep[1-8]|omake)\\.*\.txt/.test(activeEditor.document.fileName)) {
-		fileType = 'umineko';
-	} else if (/ch[1-8]\\.*\.txt/.test(activeEditor.document.fileName)) {
-		fileType = 'higurashi';
 	}
 
 	const lines = activeEditor.document.getText().split('\n');
@@ -413,7 +409,7 @@ function updateDecorations() {
 			iconDec.push(decorationIcon);
 
 			//GLOSSARY
-			let glos =
+			const glos =
 				fileType == 'umineko'
 					? glossary.umineko
 					: fileType == 'higurashi'
@@ -421,7 +417,7 @@ function updateDecorations() {
 						: undefined;
 			if (!glos) continue;
 
-			for (let [en, tr] of Object.entries(glos)) {
+			for (const [en, tr] of Object.entries(glos)) {
 				let exp = new RegExp(en, 'gi');
 				let matches = lines[i].matchAll(exp);
 
@@ -434,11 +430,7 @@ function updateDecorations() {
 					);
 
 					let hoverMessage = new vscode.MarkdownString(
-						`<span style="color:#ffcc00;">${tr}</span> — <a href="https://witch-love.com/${
-							fileType == 'umineko'
-								? 'umineko/contributing/rules'
-								: 'higurashi/contributing/rules'
-						}">Tüm Liste</a>`,
+						`<span style="color:#ffcc00;">${tr}</span> — <a href="https://witch-love.com/${fileType}/contributing/rules">Tüm Liste</a>`,
 					);
 					hoverMessage.supportHtml = true;
 
