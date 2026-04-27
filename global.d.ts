@@ -13,6 +13,7 @@ declare global {
 			umineko: { [key: string]: string };
 		};
 		var glossaryDecor: Map<string, TextEditorDecorationType | undefined>;
+		var truthDecor: Map<string, TextEditorDecorationType[] | undefined>;
 		var voicelines:
 			| {
 					[key: string]: string[];

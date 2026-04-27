@@ -7,18 +7,17 @@ import { GlossaryEntries, GlossaryInfo, Translator } from 'deepl-node';
 import initListen from './commands/listen';
 import initTranslate from './commands/translate';
 import initTranslateFile from './commands/translateFile';
-import LensProvider from './providers/LensProvider';
+import { triggerUpdateDecorations } from './decorations/decorations';
+import LensProvider, { initLens } from './providers/LensProvider';
+import { loadSettings } from './settings';
 import {
 	disposableNotification,
-	extensionFilePath,
 	fetchFileJson,
 	fetchFileText,
 	generateColorImage,
 	generateDecoration,
 	getSeededColor,
-	getTLFileType,
 	getWorkspaceFolder,
-	isFileExists,
 } from './utils';
 
 async function extensionOnReady(context: vscode.ExtensionContext) {
@@ -36,6 +35,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	global.activeEditor = vscode.window.activeTextEditor;
 	global.voicelines = undefined;
 	global.glossaryDecor = new Map();
+	global.truthDecor = new Map();
 	global.glossary = {
 		higurashi: {},
 		umineko: {},
@@ -126,18 +126,6 @@ async function initGlossary() {
 	for (let match of resHigurashi.matchAll(exp)) {
 		glossary.higurashi[match[1]] = match[2];
 	}
-}
-
-async function initLens() {
-	let res = await fetchFileText(
-		'https://gist.githubusercontent.com/Singulariity/0b41a4872b8039204b1450b5485c894a/raw/lens_data.json',
-	);
-
-	if (!res) return;
-
-	fs.writeFileSync(extensionFilePath('lens_data.json'), res, {
-		encoding: 'utf-8',
-	});
 }
 
 async function initColorImages() {
@@ -251,31 +239,6 @@ async function updateDeeplGlossary(): Promise<GlossaryInfo | undefined> {
 	}
 }
 
-/**
- * Sets the config settings (init or reload)
- * @param context
- */
-function loadSettings(context: vscode.ExtensionContext) {
-	let conf = vscode.workspace.getConfiguration('witchLove');
-
-	// UPDATE SETTINGS
-	global.config = {
-		hoverWidth: conf.get<number>('hoverWidth')!,
-		lineColorOpacity: conf.get<number>('lineColorOpacity')!,
-		paths: {
-			characters: context.asAbsolutePath('characters.json'),
-			voiceFiles: conf.get<string>('lineListening.voiceFilesDirectory')!,
-			extension: context.extensionPath,
-		},
-		onlineToken: conf.get<string>('lineListening.onlineToken')!,
-		listenVolume: conf.get<number>('lineListening.volume')!,
-		deeplKey: conf.get<string>('deepl.deeplKey')!,
-		deeplNotification:
-			conf.get<string>('deepl.translateNotification')! == 'Yes',
-		deeplGlossary: undefined,
-	};
-}
-
 function initCharacters() {
 	global.characters = new Map();
 
@@ -329,159 +292,6 @@ export function updateVoicelines(path: string) {
 	}
 	const data = fs.readFileSync(path, 'utf-8');
 	global.voicelines = JSON.parse(data);
-}
-
-function updateDecorations() {
-	if (!activeEditor) {
-		statusbarItem.hide();
-		translatebarItem.hide();
-		return;
-	}
-
-	const fileType = getTLFileType(activeEditor.document.fileName);
-
-	if (!fileType) return;
-
-	let fileName = path.basename(activeEditor.document.fileName, '.txt');
-	let fileDataPath = `data/data/${fileName}.json`;
-
-	if (!isFileExists(fileDataPath)) {
-		let dirs = path.dirname(activeEditor.document.fileName).split(/\\|\//);
-		fileDataPath = `data/data/${dirs[dirs.length - 1]}/${fileName}.json`;
-		if (!isFileExists(fileDataPath)) return;
-	}
-
-	let data = JSON.parse(
-		fs.readFileSync(extensionFilePath(fileDataPath), 'utf-8'),
-	);
-
-	const decorationArrsText = new Map<string, vscode.DecorationOptions[]>();
-	const decorationArrsIcon = new Map<string, vscode.DecorationOptions[]>();
-	const glossaryDecors: vscode.DecorationOptions[] = [];
-	for (let [key, _] of characters) {
-		decorationArrsText.set(key, []);
-		decorationArrsIcon.set(key, []);
-	}
-
-	const lines = activeEditor.document.getText().split('\n');
-	for (let i = 0; i < lines.length; i++) {
-		// RETURN FOR HIGURASHI AND UMINEKO SCRIPT FILES
-		if (lines[i].includes('void main()') || lines[i].includes('log_reset'))
-			return;
-
-		let match = lines[i].match('(.*)');
-		if (match !== null && match.index !== undefined) {
-			let defaultRange = new vscode.Range(
-				new vscode.Position(i, 0),
-				new vscode.Position(i, config.hoverWidth),
-			);
-
-			let charId = data[i + 1];
-			if (charId instanceof Array) {
-				if (charId[0] == '999' && charId[1]) {
-					charId = 'Unknown';
-				} else {
-					charId = charId[0];
-				}
-			}
-
-			let textDec = decorationArrsText.get(charId);
-			let iconDec = decorationArrsIcon.get(charId);
-
-			if (!textDec || !iconDec) continue;
-
-			let hoverMessage = new vscode.MarkdownString(
-				`<span style="color:${characters.get(charId)?.color};"><b> ${
-					characters.get(charId)?.displayName
-				}</b></span>`,
-			);
-			hoverMessage.supportHtml = true;
-
-			let decorationText = {
-				range: defaultRange,
-				hoverMessage,
-			};
-			let decorationIcon = {
-				range: defaultRange,
-			};
-
-			textDec.push(decorationText);
-			iconDec.push(decorationIcon);
-
-			//GLOSSARY
-			const glos =
-				fileType == 'umineko'
-					? glossary.umineko
-					: fileType == 'higurashi'
-						? glossary.higurashi
-						: undefined;
-			if (!glos) continue;
-
-			for (const [en, tr] of Object.entries(glos)) {
-				let exp = new RegExp(en, 'gi');
-				let matches = lines[i].matchAll(exp);
-
-				for (let item of matches) {
-					if (!item.index) continue;
-
-					let range = new vscode.Range(
-						new vscode.Position(i, item.index),
-						new vscode.Position(i, item.index + item[0].length),
-					);
-
-					let hoverMessage = new vscode.MarkdownString(
-						`<span style="color:#ffcc00;">${tr}</span> — <a href="https://witch-love.com/${fileType}/contributing/rules">Tüm Liste</a>`,
-					);
-					hoverMessage.supportHtml = true;
-
-					let decor = {
-						range,
-						hoverMessage,
-					};
-
-					glossaryDecors.push(decor);
-				}
-			}
-		}
-	}
-
-	for (let [charId, _] of decorationArrsText) {
-		let char = characters.get(charId)!;
-		let text = char.decoration.text;
-		let icon = char.decoration.icon;
-
-		if (text)
-			activeEditor.setDecorations(text, decorationArrsText.get(charId)!);
-		if (icon)
-			activeEditor.setDecorations(icon, decorationArrsIcon.get(charId)!);
-	}
-
-	let decor = global.glossaryDecor.get(activeEditor.document.fileName);
-	if (decor) decor.dispose();
-	let glosDecor = vscode.window.createTextEditorDecorationType({
-		backgroundColor: '#ffcc00',
-		overviewRulerColor: '#ffcc00',
-		color: '#1f1f1f',
-		fontWeight: 'bold',
-	});
-	global.glossaryDecor.set(activeEditor.document.fileName, glosDecor);
-	activeEditor.setDecorations(glosDecor, glossaryDecors);
-
-	statusbarItem.show();
-	translatebarItem.show();
-}
-
-var timeout: NodeJS.Timer | undefined = undefined;
-function triggerUpdateDecorations(throttle = false) {
-	if (timeout) {
-		clearTimeout(timeout);
-		timeout = undefined;
-	}
-	if (throttle) {
-		timeout = setTimeout(updateDecorations, 500);
-	} else {
-		updateDecorations();
-	}
 }
 
 async function updateWitchLoveWorkspace() {

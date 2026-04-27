@@ -1,9 +1,9 @@
-import { readFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import path from 'path';
 import * as vscode from 'vscode';
 
 import { LensData } from '../types';
-import { extensionFilePath } from '../utils';
+import { extensionFilePath, fetchFileText } from '../utils';
 
 export default class LensProvider implements vscode.CodeLensProvider {
 	private codeLenses: vscode.CodeLens[] = [];
@@ -64,4 +64,16 @@ export default class LensProvider implements vscode.CodeLensProvider {
 
 		return this.codeLenses;
 	}
+}
+
+export async function initLens() {
+	let res = await fetchFileText(
+		'https://gist.githubusercontent.com/Singulariity/0b41a4872b8039204b1450b5485c894a/raw/lens_data.json',
+	);
+
+	if (!res) return;
+
+	writeFileSync(extensionFilePath('lens_data.json'), res, {
+		encoding: 'utf-8',
+	});
 }
