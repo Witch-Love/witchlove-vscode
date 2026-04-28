@@ -8,7 +8,6 @@ import { extensionFilePath, getTLFileType, isFileExists } from '../utils';
 
 const TRUTH_EXP = /{p:([0-9]+):(.*)}/gi;
 const glossaryRegexCache = new Map<TLFileType, Map<string, RegExp>>();
-let lastGlossaryUpdateTime = 0;
 
 var timeout: NodeJS.Timer | undefined = undefined;
 export function triggerUpdateDecorations(throttle = false) {
@@ -50,6 +49,9 @@ function getCompiledGlossaryRegexes(
 	return cached;
 }
 
+const decorationCharNameTexts = new Map<string, vscode.DecorationOptions[]>();
+const decorationCharColorIcons = new Map<string, vscode.DecorationOptions[]>();
+const decorationTruthTexts = new Map<number, vscode.DecorationOptions[]>();
 function updateDecorations() {
 	if (!activeEditor) {
 		statusbarItem.hide();
@@ -73,22 +75,20 @@ function updateDecorations() {
 		fileDataPath = `data/data/${dirs[dirs.length - 1]}/${fileName}.json`;
 	}
 
-	if (!isFileExists(fileDataPath)) return;
+	let data = undefined;
+	if (isFileExists(fileDataPath)) {
+		data = JSON.parse(
+			readFileSync(extensionFilePath(fileDataPath), 'utf-8'),
+		);
+	}
 
-	const data = JSON.parse(
-		readFileSync(extensionFilePath(fileDataPath), 'utf-8'),
-	);
-
-	const decorationArrsText = new Map<string, vscode.DecorationOptions[]>();
-	const decorationArrsIcon = new Map<string, vscode.DecorationOptions[]>();
-	const truthArrsText = new Map<number, vscode.DecorationOptions[]>();
 	for (let [key, _] of uminekoColoredTexts()) {
-		truthArrsText.set(key, []);
+		decorationTruthTexts.set(key, []);
 	}
 	const glossaryDecors: vscode.DecorationOptions[] = [];
 	for (let [key, _] of characters) {
-		decorationArrsText.set(key, []);
-		decorationArrsIcon.set(key, []);
+		decorationCharNameTexts.set(key, []);
+		decorationCharColorIcons.set(key, []);
 	}
 
 	const lines = activeEditor.document.getText().split('\n');
@@ -115,74 +115,41 @@ function updateDecorations() {
 
 		if (!currentLine) continue;
 
-		let defaultRange = new vscode.Range(
-			new vscode.Position(i, 0),
-			new vscode.Position(i, config.hoverWidth),
-		);
-
-		let charId = data[i + 1];
-		if (charId instanceof Array) {
-			if (charId[0] == '999' && charId[1]) {
-				charId = 'Unknown';
-			} else {
-				charId = charId[0];
-			}
+		// STORY FILES - CHARACTER NAMES
+		if (data) {
+			createCharacterNameDecoration(data, i);
 		}
-
-		let textDec = decorationArrsText.get(charId);
-		let iconDec = decorationArrsIcon.get(charId);
-
-		if (!textDec || !iconDec) continue;
-
-		const charInfo = characters.get(charId);
-		if (!charInfo) continue;
-
-		let hoverMessage = new vscode.MarkdownString(
-			`<span style="color:${charInfo.color};"><b> ${charInfo.displayName}</b></span>`,
-		);
-		hoverMessage.supportHtml = true;
-
-		let decorationText = {
-			range: defaultRange,
-			hoverMessage,
-		};
-		let decorationIcon = {
-			range: defaultRange,
-		};
-
-		textDec.push(decorationText);
-		iconDec.push(decorationIcon);
 
 		//GLOSSARY
-		if (!glos) continue;
+		if (glos) {
+			for (const [en, tr] of Object.entries(glos)) {
+				const exp = compiledGlossaryRegexes.get(en)!;
+				const matches = currentLine.matchAll(exp);
 
-		for (const [en, tr] of Object.entries(glos)) {
-			const exp = compiledGlossaryRegexes.get(en)!;
-			const matches = currentLine.matchAll(exp);
+				for (let item of matches) {
+					if (!item.index) continue;
 
-			for (let item of matches) {
-				if (!item.index) continue;
+					const range = new vscode.Range(
+						new vscode.Position(i, item.index),
+						new vscode.Position(i, item.index + item[0].length),
+					);
 
-				const range = new vscode.Range(
-					new vscode.Position(i, item.index),
-					new vscode.Position(i, item.index + item[0].length),
-				);
+					let hoverMessage = new vscode.MarkdownString(
+						`<span style="color:#ffcc00;">${tr}</span> — <a href="https://witch-love.com/${fileType}/contributing/rules">Tüm Liste</a>`,
+					);
+					hoverMessage.supportHtml = true;
 
-				let hoverMessage = new vscode.MarkdownString(
-					`<span style="color:#ffcc00;">${tr}</span> — <a href="https://witch-love.com/${fileType}/contributing/rules">Tüm Liste</a>`,
-				);
-				hoverMessage.supportHtml = true;
+					let decor = {
+						range,
+						hoverMessage,
+					};
 
-				let decor = {
-					range,
-					hoverMessage,
-				};
-
-				glossaryDecors.push(decor);
+					glossaryDecors.push(decor);
+				}
 			}
 		}
 
-		// umineko truth colors
+		// UMINEKO - TRUTH COLORS
 		if (fileType == 'umineko') {
 			const matches = currentLine.matchAll(TRUTH_EXP);
 
@@ -191,7 +158,7 @@ function updateDecorations() {
 
 				const truthId = Number(item[1]);
 
-				const truthDec = truthArrsText.get(truthId);
+				const truthDec = decorationTruthTexts.get(truthId);
 
 				if (!truthDec) continue;
 
@@ -200,8 +167,18 @@ function updateDecorations() {
 					new vscode.Position(i, item.index + item[0].length),
 				);
 
+				const conf = uminekoColoredTexts().get(truthId);
+				let hoverMessage = undefined;
+				if (conf) {
+					hoverMessage = new vscode.MarkdownString(
+						`<span style="color:${conf.colorHex.slice(0, -2)};"><b>${conf.hoverMessage}</b></span>`,
+					);
+					hoverMessage.supportHtml = true;
+				}
+
 				const decor = {
 					range,
+					hoverMessage,
 				};
 
 				truthDec.push(decor);
@@ -210,45 +187,99 @@ function updateDecorations() {
 		// END OF LOOP
 	}
 
-	for (let [charId, _] of decorationArrsText) {
+	// character decors
+	for (let [charId, _] of decorationCharNameTexts) {
 		let char = characters.get(charId)!;
 		let text = char.decoration.text;
 		let icon = char.decoration.icon;
 
 		if (text)
-			activeEditor.setDecorations(text, decorationArrsText.get(charId)!);
+			activeEditor.setDecorations(
+				text,
+				decorationCharNameTexts.get(charId)!,
+			);
 		if (icon)
-			activeEditor.setDecorations(icon, decorationArrsIcon.get(charId)!);
+			activeEditor.setDecorations(
+				icon,
+				decorationCharColorIcons.get(charId)!,
+			);
 	}
 
-	let truthDecor = global.truthDecor.get(activeEditor.document.fileName);
-	if (truthDecor) {
-		for (let item of truthDecor) item.dispose();
-		global.truthDecor.set(activeEditor.document.fileName, []);
+	// dispose old decors
+	let decor = global.glossaryDecor.get(activeEditor.document.fileName) ?? [];
+	if (decor.length > 0) {
+		for (let item of decor) item.dispose();
+		global.glossaryDecor.set(activeEditor.document.fileName, []);
+		decor = [];
 	}
-	for (let [truthId, _] of truthArrsText) {
-		const color = uminekoColoredTexts().get(truthId)!;
+
+	// truth decors
+	for (let [truthId, _] of decorationTruthTexts) {
+		const conf = uminekoColoredTexts().get(truthId)!;
 		const decoration = vscode.window.createTextEditorDecorationType({
-			backgroundColor: color,
+			backgroundColor: conf.colorHex,
 		});
 
-		const map = global.truthDecor.get(activeEditor.document.fileName) ?? [];
-		map.push(decoration);
-		global.truthDecor.set(activeEditor.document.fileName, map);
-		activeEditor.setDecorations(decoration, truthArrsText.get(truthId)!);
+		decor.push(decoration);
+		activeEditor.setDecorations(
+			decoration,
+			decorationTruthTexts.get(truthId)!,
+		);
 	}
 
-	let decor = global.glossaryDecor.get(activeEditor.document.fileName);
-	if (decor) decor.dispose();
-	let glosDecor = vscode.window.createTextEditorDecorationType({
+	// glossary decors
+	const glosDecor = vscode.window.createTextEditorDecorationType({
 		backgroundColor: '#ffcc00',
 		overviewRulerColor: '#ffcc00',
 		color: '#1f1f1f',
 		fontWeight: 'bold',
 	});
-	global.glossaryDecor.set(activeEditor.document.fileName, glosDecor);
+	decor.push(glosDecor);
 	activeEditor.setDecorations(glosDecor, glossaryDecors);
+
+	// save
+	global.glossaryDecor.set(activeEditor.document.fileName, decor);
 
 	statusbarItem.show();
 	translatebarItem.show();
+}
+
+function createCharacterNameDecoration(data: any, i: number) {
+	let defaultRange = new vscode.Range(
+		new vscode.Position(i, 0),
+		new vscode.Position(i, config.hoverWidth),
+	);
+
+	let charId = data[i + 1];
+	if (charId instanceof Array) {
+		if (charId[0] == '999' && charId[1]) {
+			charId = 'Unknown';
+		} else {
+			charId = charId[0];
+		}
+	}
+
+	let textDec = decorationCharNameTexts.get(charId);
+	let iconDec = decorationCharColorIcons.get(charId);
+
+	if (!textDec || !iconDec) return;
+
+	const charInfo = characters.get(charId);
+	if (!charInfo) return;
+
+	let hoverMessage = new vscode.MarkdownString(
+		`<span style="color:${charInfo.color};"><b>${charInfo.displayName}</b></span>`,
+	);
+	hoverMessage.supportHtml = true;
+
+	let decorationText = {
+		range: defaultRange,
+		hoverMessage,
+	};
+	let decorationIcon = {
+		range: defaultRange,
+	};
+
+	textDec.push(decorationText);
+	iconDec.push(decorationIcon);
 }

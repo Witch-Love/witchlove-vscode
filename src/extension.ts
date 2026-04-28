@@ -35,7 +35,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	global.activeEditor = vscode.window.activeTextEditor;
 	global.voicelines = undefined;
 	global.glossaryDecor = new Map();
-	global.truthDecor = new Map();
 	global.glossary = {
 		higurashi: {},
 		umineko: {},

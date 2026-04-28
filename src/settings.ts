@@ -24,11 +24,42 @@ export function loadSettings(context: ExtensionContext) {
 	};
 }
 
+type ColoredTextConfig = {
+	colorHex: string;
+	hoverMessage: string;
+};
+
+const COLORED_TEXTS = new Map<number, ColoredTextConfig>([
+	[
+		1,
+		{
+			colorHex: '#f8524932',
+			hoverMessage: 'Kırmızı Gerçek',
+		},
+	],
+	[
+		2,
+		{
+			colorHex: '#494ff83c',
+			hoverMessage: 'Mavi Gerçek',
+		},
+	],
+	[
+		41,
+		{
+			colorHex: '#eaf84950',
+			hoverMessage: 'Altın Gerçek',
+		},
+	],
+	[
+		42,
+		{
+			colorHex: '#be49f83c',
+			hoverMessage: 'Mor Gerçek',
+		},
+	],
+]);
+
 export function uminekoColoredTexts() {
-	return new Map<number, string>([
-		[1, '#f8524932'],
-		[2, '#494ff83c'],
-		[41, '#eaf84950'],
-		[42, '#be49f83c'],
-	]);
+	return COLORED_TEXTS;
 }

@@ -190,7 +190,7 @@ export async function checkOnlineTokenValidity(): Promise<boolean> {
 
 export function getTLFileType(fileName: string): TLFileType {
 	// umineko
-	const umiRegex = /umi.*\.txt/gi;
+	const umiRegex = /(umi.*|caches|code|credits|header|menu|prefs)\.txt/gi;
 	if (umiRegex.test(fileName)) {
 		return 'umineko';
 	}
