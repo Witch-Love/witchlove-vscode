@@ -8,8 +8,8 @@ import {
 	checkFFmpegInstallation,
 	checkOnlineTokenValidity,
 	extensionFilePath,
+	getDataDir,
 	getTLFileType,
-	isFileExists,
 } from '../utils';
 
 let isFFmpegInstalled = false;
@@ -30,13 +30,17 @@ async function command() {
 	const filename = path.basename(activeEditor.document.fileName, '.txt');
 	const fileType = getTLFileType(activeEditor.document.fileName);
 	if (!fileType) return;
-	let datapath = `data/data/${filename}.json`;
-	if (!isFileExists(datapath)) {
+	const dataDir = getDataDir(fileType);
+	let dataPath;
+	if (fileType == 'umineko') {
+		dataPath = `${dataDir}/${filename}.json`;
+	} else if (fileType == 'higurashi') {
 		let dirs = path.dirname(activeEditor.document.fileName).split(/\\|\//);
-		datapath = `data/data/${dirs[dirs.length - 1]}/${filename}.json`;
+		dataPath = `${dataDir}/${dirs[dirs.length - 1]}/${filename}.json`;
 	}
+
 	if (!voicelines) {
-		updateVoicelines(extensionFilePath(datapath));
+		if (dataPath) updateVoicelines(extensionFilePath(dataPath));
 		if (!voicelines) return;
 	}
 

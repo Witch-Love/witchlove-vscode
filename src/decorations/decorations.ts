@@ -4,7 +4,12 @@ import { readFileSync } from 'fs';
 import path from 'path';
 import { uminekoColoredTexts } from '../settings';
 import { TLFileType } from '../types';
-import { extensionFilePath, getTLFileType, isFileExists } from '../utils';
+import {
+	extensionFilePath,
+	getDataDir,
+	getTLFileType,
+	isFileExists,
+} from '../utils';
 
 const TRUTH_EXP = /{p:([0-9]+):(.*)}/gi;
 const glossaryRegexCache = new Map<TLFileType, Map<string, RegExp>>();
@@ -64,15 +69,16 @@ function updateDecorations() {
 	if (!fileType) return;
 
 	const fileName = path.basename(activeEditor.document.fileName, '.txt');
+	const dataDir = getDataDir(fileType);
 
 	let fileDataPath = '';
 	if (fileType == 'umineko') {
-		fileDataPath = `data/data/${fileName}.json`;
+		fileDataPath = `${dataDir}/${fileName}.json`;
 	} else if (fileType == 'higurashi') {
 		const dirs = path
 			.dirname(activeEditor.document.fileName)
 			.split(/\\|\//);
-		fileDataPath = `data/data/${dirs[dirs.length - 1]}/${fileName}.json`;
+		fileDataPath = `${dataDir}/${dirs[dirs.length - 1]}/${fileName}.json`;
 	}
 
 	let data = undefined;

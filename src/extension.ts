@@ -16,7 +16,9 @@ import {
 	fetchFileText,
 	generateColorImage,
 	generateDecoration,
+	getDataDir,
 	getSeededColor,
+	getTLFileType,
 	getWorkspaceFolder,
 } from './utils';
 
@@ -173,8 +175,9 @@ function initListeners(context: vscode.ExtensionContext) {
 				triggerUpdateDecorations();
 
 				let filename = path.basename(editor.document.fileName, '.txt');
+				const dataDir = getDataDir(getTLFileType(filename));
 				let datapath = context.asAbsolutePath(
-					`data/data/${filename}.json`,
+					`${dataDir}/${filename}.json`,
 				);
 				updateVoicelines(datapath);
 			}

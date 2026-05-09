@@ -110,6 +110,23 @@ export function disposableNotification(text: string): Notification {
 }
 
 /**
+ * Returns data directory for the file type
+ * @param fileType translation file type
+ * @returns data directory ex. `/data/data/umineko`
+ */
+export function getDataDir(fileType: TLFileType) {
+	let path = 'data/data/';
+
+	if (fileType == 'umineko') {
+		path += 'umineko';
+	} else if (fileType == 'higurashi') {
+		path += 'higurashi';
+	}
+
+	return path;
+}
+
+/**
  * Returns the absolute path of the file respect to the extension's folder.
  * @param path Path to the file inside the extension folder.
  * Example: `data/data/file.json`
