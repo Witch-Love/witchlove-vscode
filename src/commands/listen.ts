@@ -6,20 +6,17 @@ import { exec } from 'child_process';
 import { updateVoicelines } from '../extension';
 import {
 	checkFFmpegInstallation,
-	checkOnlineTokenValidity,
 	extensionFilePath,
 	getDataDir,
 	getTLFileType,
 } from '../utils';
 
 let isFFmpegInstalled = false;
-let isOnlineTokenValid = false;
 
 export default async function initListen(context: ExtensionContext) {
 	const cmd = commands.registerCommand('witchLove.listen', command);
 
 	isFFmpegInstalled = await checkFFmpegInstallation();
-	isOnlineTokenValid = await checkOnlineTokenValidity();
 
 	context.subscriptions.push(cmd);
 }
@@ -71,32 +68,10 @@ async function command() {
 		return;
 	}
 
-	const listenOnline = config.onlineToken.length > 0;
-
-	if (listenOnline && !isOnlineTokenValid) {
-		let selection = await window.showWarningMessage(
-			'Your online token is not valid. In order to listen lines without downloading you have to enter a valid token.\nPlease restart VS Code after changing the token or use the button to check again.',
-			'Check Again',
-			'Configure Token',
-			'Close',
-		);
-		if (selection === 'Check Again') {
-			isOnlineTokenValid = await checkOnlineTokenValidity();
-			if (isOnlineTokenValid) {
-				window.showInformationMessage('Your online token is valid!');
-			}
-			commands.executeCommand('witchLove.listen');
-		} else if (selection === 'Configure Token') {
-			commands.executeCommand(
-				'workbench.action.openSettings',
-				'witchLove.lineListening.onlineToken',
-			);
-		}
-		return;
-	}
+	const listenOnline = config.listenOnline;
 
 	const basePath = listenOnline
-		? 'https://cdn.witch-love.com/p'
+		? 'https://cdn.witch-love.com/sounds'
 		: config.paths.voiceFiles;
 
 	let voiceFilePath = `${basePath}/${fileType}/sound/voice/`;
@@ -125,19 +100,14 @@ async function command() {
 		return;
 	}
 
-	const EXTRA_ARGS = listenOnline
-		? ['-headers', `"Authorization: Bearer ${config.onlineToken}"`]
-		: [];
-
 	if (voicelines[line][2] && voicelines[line][2] == 'red') {
 		playAudio(`${basePath}/umineko/sound/se/umise_059.ogg`, [
-			...EXTRA_ARGS,
 			'-t',
 			'00:02',
 		]);
 	}
 
-	playAudio(voiceFilePath, EXTRA_ARGS);
+	playAudio(voiceFilePath);
 	console.log('Played audio: ', voiceFilePath);
 }
 

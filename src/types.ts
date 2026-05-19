@@ -11,7 +11,7 @@ export type Character = {
 };
 
 export type Config = {
-	onlineToken: string;
+	listenOnline: boolean;
 	listenVolume: number;
 	hoverWidth: number;
 	lineColorOpacity: number;

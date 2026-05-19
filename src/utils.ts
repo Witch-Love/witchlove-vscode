@@ -194,17 +194,6 @@ export async function checkFFmpegInstallation(): Promise<boolean> {
 	});
 }
 
-export async function checkOnlineTokenValidity(): Promise<boolean> {
-	const res = await fetch('https://cdn.witch-love.com/p/tokenvalidity', {
-		headers: {
-			// eslint-disable-next-line @typescript-eslint/naming-convention
-			Authorization: `Bearer ${config.onlineToken}`,
-		},
-	});
-
-	return res.status != 401;
-}
-
 export function getTLFileType(fileName: string): TLFileType {
 	// umineko
 	const umiRegex = /(umi.*|caches|code|credits|header|menu|prefs)\.txt/gi;

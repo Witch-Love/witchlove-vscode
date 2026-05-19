@@ -16,7 +16,7 @@ export function loadSettings(context: ExtensionContext) {
 			voiceFiles: conf.get<string>('lineListening.voiceFilesDirectory')!,
 			extension: context.extensionPath,
 		},
-		onlineToken: conf.get<string>('lineListening.onlineToken')!,
+		listenOnline: conf.get<boolean>('lineListening.listenOnline')!,
 		listenVolume: conf.get<number>('lineListening.volume')!,
 		deeplKey: conf.get<string>('deepl.deeplKey')!,
 		deeplNotification:
